@@ -33,6 +33,10 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
             <Link href={`/lessons/${id}/questions`} className="underline">
               문항과 개념 편집
             </Link>
+            {" · "}
+            <Link href={`/lessons/${id}/dashboard`} className="underline">
+              대시보드
+            </Link>
           </p>
           {lesson.state === "공개" ? (
             <StateForm action={setStateAction} lessonId={id} target="마감" />
