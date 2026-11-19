@@ -1,4 +1,5 @@
 import { canOpen } from "./access";
+import { assess } from "./assessment";
 import { newId } from "./id";
 import { latestSet } from "./publishing";
 import { fail, ok, type Result } from "./result";
@@ -55,5 +56,7 @@ export function submitAttempt(
 
   const id = newId("a");
   data.attempts.push({ id, studentId: user.id, questionSetId: set.id, key, answers, submittedAt: new Date().toISOString() });
+  // 평가 결과는 제출 당시 버전으로 계산해 시도와 함께 저장한다. 이후 버전이 바뀌어도 학생이 본 결과는 그대로다(ADR 0001).
+  for (const e of assess(set, answers)) data.evaluations.push({ attemptId: id, ...e });
   return ok(id);
 }

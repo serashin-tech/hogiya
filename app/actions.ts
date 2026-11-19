@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
 import { submitAttempt } from "@/lib/attempts";
+import { saveRetelling } from "@/lib/review";
 import { deleteQuestion, latestSet, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
 import { addMaterial, createLesson, deleteMaterial, updateMaterial } from "@/lib/teaching";
 import type { FormState } from "./_components/fields-form";
@@ -93,4 +94,11 @@ export async function submitAttemptAction(_: FormState, f: FormData): Promise<Fo
   }
   revalidatePath("/", "layout");
   redirect(`/attempts/${attemptId}`);
+}
+
+export async function saveRetellingAction(_: FormState, f: FormData): Promise<FormState> {
+  const r = saveRetelling(store, await currentUser(), text(f, "attemptId"), text(f, "conceptId"), text(f, "text"));
+  if (!r.ok) return { errors: r.errors, values: values(f, ["text"]) };
+  revalidatePath("/", "layout");
+  return {};
 }
