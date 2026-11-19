@@ -2,7 +2,7 @@ import type { Data, Subject } from "./types";
 
 const subjects: Subject[] = ["과학", "국어", "영어", "수학"];
 
-export const data: Data = {
+const seed: Data = {
   classrooms: [{ id: "c-6-2", name: "6학년 2반" }],
   students: Array.from({ length: 20 }, (_, i) => ({
     id: `s-${String(i + 1).padStart(2, "0")}`,
@@ -57,3 +57,6 @@ export const data: Data = {
 function q(n: number, stem: string, choices: string[], answerIndex: number, conceptId: string, rubric: string) {
   return { id: `q-electric-${n}`, stem, choices, answerIndex, hasReason: n <= 2, conceptId, rubric };
 }
+
+export const data = seed;
+export const freshData = (): Data => structuredClone(seed);

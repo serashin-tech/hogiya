@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { canOpen } from "@/lib/access";
 import { currentUser } from "@/lib/current-user";
-import { data } from "@/lib/mock-data";
+import { store as data } from "@/lib/store";
 
 // 시도 화면은 05번 티켓에서 채운다. 여기서는 접근 판단만 지난다.
 export default async function AttemptPage({ params }: PageProps<"/attempts/[id]">) {
