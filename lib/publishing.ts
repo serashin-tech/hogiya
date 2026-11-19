@@ -34,7 +34,8 @@ export const versionsOf = (data: Data, lessonId: string): QuestionSet[] =>
 
 /**
  * 고칠 문항 세트를 돌려준다. 공개된 적 있는 세트는 덮어쓰지 않고 복사해서 새 버전을 만든다(ADR 0001).
- * 수업이 공개 중이면 새 버전이 곧바로 학생에게 쓰이므로 굳은 채로 시작한다.
+ * 새 버전은 굳지 않은 채로 시작한다. 학생이 제출해서 쓰이기 시작하면(submitAttempt) 그때 굳는다.
+ * 그래서 제출 전의 수정은 같은 버전 안에서 이어지고, 저장할 때마다 버전이 늘지 않는다.
  */
 function editableSet(data: Data, lesson: Lesson): QuestionSet {
   const latest = latestSet(data, lesson.id);
@@ -48,10 +49,35 @@ function editableSet(data: Data, lesson: Lesson): QuestionSet {
     ...structuredClone(latest),
     id: newId("qs"),
     version: latest.version + 1,
-    frozen: lesson.state === "공개",
+    frozen: false,
   };
   data.questionSets.push(next);
   return next;
+}
+
+/**
+ * 문항 세트를 고친다. 공개 중인 수업은 고친 결과가 공개 조건을 깨면(문항 수, 루브릭 등) 되돌리고 거절한다.
+ * 학생에게 이미 열려 있는 세트이므로 공개 때와 같은 기준을 지켜야 한다(S03).
+ */
+function editSet<T>(data: Data, lesson: Lesson, edit: (set: QuestionSet) => T): Result<T> {
+  const snapshot = structuredClone(data.questionSets);
+  const value = edit(editableSet(data, lesson));
+  if (lesson.state === "공개") {
+    const issues = checkPublishable(data, lesson.id);
+    if (issues.length) {
+      data.questionSets = snapshot;
+      return fail(Object.fromEntries(issues.map((m, i) => [`issue-${i}`, m])));
+    }
+  }
+  return ok(value);
+}
+
+/** 문항 내용의 서명. 학생이 폼을 연 뒤 교사가 문항을 고쳤는지 제출할 때 알아내는 데 쓴다. 정답은 화면에 보내지 않고 서명만 보낸다. */
+export function setSignature(set: QuestionSet): string {
+  const text = set.id + JSON.stringify(set.questions);
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
 }
 
 /** 공개 조건 검사. 부족한 항목을 문장으로 돌려주고, 갖춰졌으면 빈 목록이다. */
@@ -132,7 +158,6 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
   // 없는 문항을 고치려는 요청은 새 버전을 만들기 전에 거절한다.
   if (input.id && !latestSet(data, lessonId)?.questions.some((q) => q.id === input.id)) return denied();
 
-  const set = editableSet(data, lesson);
   const fields = {
     stem: input.stem.trim(),
     choices: picked.map((c) => c.text),
@@ -141,21 +166,24 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
     conceptId,
     rubric: input.rubric.trim(),
   };
-  const existing = input.id ? set.questions.find((q) => q.id === input.id) : undefined;
-  if (existing) {
-    Object.assign(existing, fields);
-    return ok(existing.id);
-  }
-  const question: Question = { id: newId("q"), ...fields };
-  set.questions.push(question);
-  return ok(question.id);
+  return editSet(data, lesson, (set) => {
+    const existing = input.id ? set.questions.find((q) => q.id === input.id) : undefined;
+    if (existing) {
+      Object.assign(existing, fields);
+      return existing.id;
+    }
+    const question: Question = { id: newId("q"), ...fields };
+    set.questions.push(question);
+    return question.id;
+  });
 }
 
 export function deleteQuestion(data: Data, user: User, lessonId: string, questionId: string): Result {
   const lesson = teacherLesson(data, user, lessonId);
   if (!lesson) return denied();
   if (!latestSet(data, lessonId)?.questions.some((q) => q.id === questionId)) return ok();
-  const set = editableSet(data, lesson);
-  set.questions = set.questions.filter((q) => q.id !== questionId);
-  return ok();
+  const r = editSet(data, lesson, (set) => {
+    set.questions = set.questions.filter((q) => q.id !== questionId);
+  });
+  return r.ok ? ok() : r;
 }

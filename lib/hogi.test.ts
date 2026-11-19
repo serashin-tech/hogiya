@@ -87,6 +87,11 @@ describe("buildHogiInput (호기에게 전달하는 입력의 제한)", () => {
     expect(i.concept).toEqual({ id: "k-series-parallel", name: "전지·전구의 직렬·병렬연결" });
   });
 
+  it("질문은 앞뒤 공백을 지우고 300자까지만 전달한다", () => {
+    const i = input(`  ${"가".repeat(500)}  `);
+    expect(i.question).toHaveLength(300);
+  });
+
   it("다른 학생의 시도, 교사, 시도에 없는 개념으로는 만들 수 없다", () => {
     expect(buildHogiInput(data, s2, attemptId, "k-circuit", "x")).toBeUndefined();
     expect(buildHogiInput(data, sci, attemptId, "k-circuit", "x")).toBeUndefined();

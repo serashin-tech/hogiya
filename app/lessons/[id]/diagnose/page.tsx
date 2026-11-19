@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { canOpen } from "@/lib/access";
 import { canStartAttempt } from "@/lib/attempts";
 import { currentUser } from "@/lib/current-user";
-import { latestSet } from "@/lib/publishing";
+import { latestSet, setSignature } from "@/lib/publishing";
 import { store } from "@/lib/store";
 import { submitAttemptAction } from "@/app/actions";
 import { DiagnoseForm } from "@/app/_components/diagnose-form";
@@ -28,6 +28,7 @@ export default async function DiagnosePage({ params }: PageProps<"/lessons/[id]/
         <DiagnoseForm
           action={submitAttemptAction}
           lessonId={id}
+          signature={setSignature(set)}
           questions={set.questions.map(({ id, stem, choices, hasReason }) => ({ id, stem, choices, hasReason }))}
         />
       ) : (

@@ -13,10 +13,13 @@ export type DiagnoseQuestion = { id: string; stem: string; choices: string[]; ha
 export function DiagnoseForm({
   action,
   lessonId,
+  signature,
   questions,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   lessonId: string;
+  /** 폼을 열 때의 문항 서명. 제출할 때 문항이 바뀌었는지 서버가 확인한다. */
+  signature: string;
   questions: DiagnoseQuestion[];
 }) {
   const [key] = useState(() => crypto.randomUUID());
@@ -31,6 +34,7 @@ export function DiagnoseForm({
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="key" value={key} />
+      <input type="hidden" name="signature" value={signature} />
       {questions.map((q, i) => {
         const error = state.errors?.[q.id];
         return (

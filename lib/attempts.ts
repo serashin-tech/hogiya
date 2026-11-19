@@ -1,7 +1,7 @@
 import { canOpen } from "./access";
 import { assess } from "./assessment";
 import { newId } from "./id";
-import { latestSet } from "./publishing";
+import { latestSet, setSignature } from "./publishing";
 import { fail, ok, type Result } from "./result";
 import type { Data, User } from "./types";
 
@@ -27,7 +27,7 @@ export function submitAttempt(
   data: Data,
   user: User,
   lessonId: string,
-  input: { key: string; answers: SubmittedAnswer[] },
+  input: { key: string; answers: SubmittedAnswer[]; signature?: string },
 ): Result<string> {
   if (user.role !== "student" || !canOpen(data, user, { kind: "lesson", id: lessonId })) {
     return fail({ form: "열 수 없는 자료입니다" });
@@ -35,12 +35,20 @@ export function submitAttempt(
   const key = input.key.trim();
   if (!key) return fail({ form: "제출 정보가 올바르지 않아요. 화면을 새로 열어 주세요" });
 
-  const duplicate = data.attempts.find((a) => a.studentId === user.id && a.key === key);
+  // 시도 키는 한 수업 안에서만 같은 시도를 가리킨다.
+  const lessonSetIds = new Set(data.questionSets.filter((s) => s.lessonId === lessonId).map((s) => s.id));
+  const duplicate = data.attempts.find(
+    (a) => a.studentId === user.id && a.key === key && lessonSetIds.has(a.questionSetId),
+  );
   if (duplicate) return ok(duplicate.id);
 
   if (!canStartAttempt(data, user, lessonId)) return fail({ form: "마감한 수업이라 새로 풀 수 없어요" });
   const set = latestSet(data, lessonId);
   if (!set) return fail({ form: "아직 문항이 준비되지 않았어요" });
+  // 폼을 연 뒤 문항이 바뀌었으면 학생이 본 문항과 채점할 문항이 달라지므로 제출하지 않는다(ADR 0001).
+  if (input.signature !== undefined && input.signature !== setSignature(set)) {
+    return fail({ form: "문항이 바뀌었어요. 화면을 새로 열어서 다시 풀어 주세요" });
+  }
 
   const missing: Record<string, string> = {};
   const answers = set.questions.map((q) => {
@@ -55,6 +63,7 @@ export function submitAttempt(
   if (Object.keys(missing).length) return fail(missing);
 
   const id = newId("a");
+  set.frozen = true; // 학생이 쓰기 시작한 세트이므로 이후 수정은 새 버전이 된다.
   data.attempts.push({ id, studentId: user.id, questionSetId: set.id, key, answers, submittedAt: new Date().toISOString() });
   // 평가 결과는 제출 당시 버전으로 계산해 시도와 함께 저장한다. 이후 버전이 바뀌어도 학생이 본 결과는 그대로다(ADR 0001).
   for (const e of assess(set, answers)) data.evaluations.push({ attemptId: id, ...e });

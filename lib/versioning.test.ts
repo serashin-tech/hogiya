@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { submitAttempt } from "./attempts";
 import { freshData } from "./mock-data";
 import { deleteQuestion, latestSet, saveConcept, saveQuestion, setLessonState, versionsOf } from "./publishing";
 import { createLesson } from "./teaching";
@@ -50,12 +51,45 @@ describe("공개 후 수정은 새 버전이 된다 (ADR 0001)", () => {
     expect(v2.questions.map((q) => q.id)).toEqual(v1.questions.map((q) => q.id));
   });
 
-  it("공개 뒤 문항을 지워도 새 버전이 되고 이전 버전은 그대로다", () => {
+  it("공개 중에는 공개 조건을 깨는 수정(문항 삭제, 6번째 문항, 루브릭 비우기)이 거절되고 버전도 그대로다", () => {
     const v1 = latestSet(data, "l-electric")!;
-    deleteQuestion(data, sci, "l-electric", v1.questions[4].id);
+    const del = deleteQuestion(data, sci, "l-electric", v1.questions[4].id);
+    expect(del.ok === false && Object.values(del.errors)).toContain("문항 1개가 더 필요합니다");
+
+    const extra = { stem: "여섯째", choices: ["가", "나"], answerIndex: 0, hasReason: false, conceptIds: ["k-circuit"], rubric: "r" };
+    expect(saveQuestion(data, sci, "l-electric", extra).ok).toBe(false);
+    expect(saveQuestion(data, sci, "l-electric", asInput(v1.questions[0], { rubric: " " })).ok).toBe(false);
+
+    expect(versionsOf(data, "l-electric")).toHaveLength(1);
+    expect(latestSet(data, "l-electric")!.questions).toHaveLength(5);
+  });
+
+  it("마감 중에는 문항을 지워 새 버전을 만들 수 있지만, 조건이 갖춰질 때까지 다시 공개할 수 없다", () => {
+    const v1 = latestSet(data, "l-electric")!;
+    setLessonState(data, sci, "l-electric", "마감");
+    expect(deleteQuestion(data, sci, "l-electric", v1.questions[4].id).ok).toBe(true);
     const [old, next] = versionsOf(data, "l-electric");
     expect(old.questions).toHaveLength(5);
     expect(next.questions).toHaveLength(4);
+    expect(setLessonState(data, sci, "l-electric", "공개").ok).toBe(false);
+  });
+
+  it("학생이 제출하기 전의 수정은 같은 새 버전 안에서 이어지고, 제출된 뒤의 수정은 다시 새 버전이 된다", () => {
+    const first = latestSet(data, "l-electric")!.questions[0];
+    saveQuestion(data, sci, "l-electric", asInput(first, { stem: "수정 1" }));
+    saveQuestion(data, sci, "l-electric", asInput(first, { stem: "수정 2" }));
+    expect(versionsOf(data, "l-electric").map((s) => s.version)).toEqual([1, 2]);
+    expect(latestSet(data, "l-electric")!.questions[0].stem).toBe("수정 2");
+
+    const v2 = latestSet(data, "l-electric")!;
+    const r = submitAttempt(data, { role: "student", id: "s-01" }, "l-electric", {
+      key: "k1",
+      answers: v2.questions.map((q) => ({ questionId: q.id, choiceIndex: 0 })),
+    });
+    expect(r.ok).toBe(true);
+    saveQuestion(data, sci, "l-electric", asInput(first, { stem: "수정 3" }));
+    expect(versionsOf(data, "l-electric").map((s) => s.version)).toEqual([1, 2, 3]);
+    expect(versionsOf(data, "l-electric")[1].questions[0].stem).toBe("수정 2");
   });
 
   it("검증에 실패한 수정은 새 버전을 만들지 않는다", () => {

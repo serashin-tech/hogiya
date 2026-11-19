@@ -84,6 +84,7 @@ export async function submitAttemptAction(_: FormState, f: FormData): Promise<Fo
     const questions = latestSet(store, lessonId)?.questions ?? [];
     const r = submitAttempt(store, await currentUser(), lessonId, {
       key: text(f, "key"),
+      signature: text(f, "signature"),
       answers: questions.map((q) => {
         const choice = f.get(`choice-${q.id}`);
         return { questionId: q.id, choiceIndex: choice === null ? null : Number(choice), reason: text(f, `reason-${q.id}`) };

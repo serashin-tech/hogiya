@@ -18,6 +18,7 @@ export type HogiReply = {
 };
 export type Responder = (input: HogiInput) => HogiReply;
 
+const MAX_QUESTION_LENGTH = 300;
 export const NO_SOURCE_TEXT = "자료의 해당 부분을 다시 확인하거나 선생님께 물어보세요";
 const ERROR_TEXT = "호기가 지금은 답하지 못해요. 결과와 답안은 그대로 있어요. 잠시 뒤에 다시 물어봐 주세요.";
 
@@ -68,7 +69,7 @@ export function buildHogiInput(
   const concept = data.concepts.find((c) => c.id === conceptId);
   if (!concept) return undefined;
   return {
-    question,
+    question: question.trim().slice(0, MAX_QUESTION_LENGTH),
     concept: { id: concept.id, name: concept.name },
     materials: data.materials
       .filter((m) => m.lessonId === lessonId)

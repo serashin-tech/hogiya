@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useId } from "react";
 
 export type FormState = { errors?: Record<string, string>; values?: Record<string, string> };
 export type Field = { name: string; label: string; multiline?: boolean; defaultValue?: string };
@@ -18,6 +18,7 @@ export function FieldsForm({
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const uid = useId();
   return (
     <form action={formAction} className="space-y-2">
       {Object.entries(hidden).map(([k, v]) => (
@@ -26,7 +27,7 @@ export function FieldsForm({
       {fields.map((f) => {
         const error = state.errors?.[f.name];
         const common = {
-          id: `${f.name}-${hidden.id ?? "new"}`,
+          id: `${uid}-${f.name}`,
           name: f.name,
           defaultValue: state.values?.[f.name] ?? f.defaultValue ?? "",
           "aria-invalid": error ? true : undefined,

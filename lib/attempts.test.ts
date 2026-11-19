@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { participationCount, submitAttempt, type SubmittedAnswer } from "./attempts";
 import { freshData } from "./mock-data";
-import { latestSet, saveQuestion, setLessonState } from "./publishing";
+import { latestSet, saveQuestion, setLessonState, setSignature } from "./publishing";
 import type { Data } from "./types";
 
 const s1 = { role: "student", id: "s-01" } as const;
@@ -84,6 +84,42 @@ describe("submitAttempt", () => {
     setLessonState(data, sci, "l-electric", "마감");
     const again = submitAttempt(data, s1, "l-electric", { key: "k1", answers: complete() });
     expect(again.ok && first.ok && again.value === first.value).toBe(true);
+  });
+
+  it("시도 키는 수업 안에서만 같은 시도를 가리킨다", () => {
+    const other = structuredClone(latestSet(data, "l-electric")!);
+    other.id = "qs-other";
+    other.lessonId = "l-other";
+    other.questions.forEach((q) => (q.id = `${q.id}-o`));
+    data.questionSets.push(other);
+    data.lessons.push({ id: "l-other", classId: "c-6-2", subject: "과학", title: "다른 수업", state: "공개" });
+
+    const a = submitAttempt(data, s1, "l-electric", { key: "same", answers: complete() });
+    const b = submitAttempt(data, s1, "l-other", {
+      key: "same",
+      answers: other.questions.map((q) => ({ questionId: q.id, choiceIndex: 0 })),
+    });
+    expect(a.ok && b.ok && a.value !== b.value).toBe(true);
+    expect(data.attempts).toHaveLength(2);
+  });
+
+  it("폼을 연 뒤 문항이 바뀌었으면(서명이 다르면) 제출을 거절하고 시도를 만들지 않는다", () => {
+    const signature = setSignature(latestSet(data, "l-electric")!);
+    const q = latestSet(data, "l-electric")!.questions[0];
+    saveQuestion(data, sci, "l-electric", {
+      id: q.id, stem: "교사가 고침", choices: q.choices, answerIndex: q.answerIndex,
+      hasReason: q.hasReason, conceptIds: [q.conceptId], rubric: q.rubric,
+    });
+    const stale = submitAttempt(data, s1, "l-electric", { key: "k1", signature, answers: complete() });
+    expect(stale.ok).toBe(false);
+    expect(data.attempts).toHaveLength(0);
+
+    const fresh = submitAttempt(data, s1, "l-electric", {
+      key: "k1",
+      signature: setSignature(latestSet(data, "l-electric")!),
+      answers: complete(),
+    });
+    expect(fresh.ok).toBe(true);
   });
 
   it("공개 뒤 새 버전이 생기면 새로 푼 시도는 버전 2에 연결되고, 이전 시도는 버전 1에 남는다", () => {
