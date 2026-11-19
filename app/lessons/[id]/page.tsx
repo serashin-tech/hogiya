@@ -18,6 +18,8 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
   const sets = store.questionSets.filter((s) => s.lessonId === id);
   const materials = store.materials.filter((m) => m.lessonId === id);
   const isTeacher = user.role === "teacher";
+  const setIds = new Set(sets.map((s) => s.id));
+  const myAttempts = store.attempts.filter((a) => a.studentId === user.id && setIds.has(a.questionSetId));
   return (
     <>
       <h1 className="text-2xl font-semibold">{lesson.title}</h1>
@@ -40,11 +42,26 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
         </section>
       )}
       {!isTeacher && (
-        <section className="mb-6">
+        <section className="mb-6 space-y-2">
           {canStartAttempt(store, user, id) ? (
-            <p>선진단을 풀 수 있어요.</p>
+            <p>
+              <Link href={`/lessons/${id}/diagnose`} className="underline">
+                {myAttempts.length ? "새로 풀기" : "선진단 풀기"}
+              </Link>
+            </p>
           ) : (
             <p className="text-sm">마감한 수업이에요. 이전 결과는 계속 볼 수 있어요.</p>
+          )}
+          {myAttempts.length > 0 && (
+            <ul className="list-disc pl-5 text-sm">
+              {myAttempts.map((a, i) => (
+                <li key={a.id}>
+                  <Link href={`/attempts/${a.id}`} className="underline">
+                    {i + 1}번째 시도 결과
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
       )}

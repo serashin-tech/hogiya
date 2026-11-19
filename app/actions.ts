@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
-import { deleteQuestion, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
+import { submitAttempt } from "@/lib/attempts";
+import { deleteQuestion, latestSet, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
 import { addMaterial, createLesson, deleteMaterial, updateMaterial } from "@/lib/teaching";
 import type { FormState } from "./_components/fields-form";
 import type { Subject } from "@/lib/types";
@@ -67,4 +68,29 @@ export async function setStateAction(_: FormState, f: FormData): Promise<FormSta
   if (!r.ok) return { errors: r.errors };
   revalidatePath("/", "layout");
   return {};
+}
+
+export async function submitAttemptAction(_: FormState, f: FormData): Promise<FormState> {
+  const kept: Record<string, string> = {};
+  for (const [k, v] of f.entries()) if (k.startsWith("choice-") || k.startsWith("reason-")) kept[k] = String(v);
+
+  let attemptId: string;
+  try {
+    const lessonId = text(f, "lessonId");
+    const questions = latestSet(store, lessonId)?.questions ?? [];
+    const r = submitAttempt(store, await currentUser(), lessonId, {
+      key: text(f, "key"),
+      answers: questions.map((q) => {
+        const choice = f.get(`choice-${q.id}`);
+        return { questionId: q.id, choiceIndex: choice === null ? null : Number(choice), reason: text(f, `reason-${q.id}`) };
+      }),
+    });
+    if (!r.ok) return { errors: r.errors, values: kept };
+    attemptId = r.value;
+  } catch {
+    // 처리 중 예외가 나도 입력한 답은 화면에 남기고, 같은 시도 키로 다시 제출하게 한다.
+    return { errors: { form: "제출하지 못했어요. 입력한 답은 그대로 있으니 다시 눌러 주세요." }, values: kept };
+  }
+  revalidatePath("/", "layout");
+  redirect(`/attempts/${attemptId}`);
 }
