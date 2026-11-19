@@ -32,9 +32,9 @@ const data: Data = {
   materials: [{ id: "m-math", lessonId: "math-open", title: "m", body: "b" }],
   concepts: [],
   questionSets: [
-    { id: "qs-sci", lessonId: "sci", version: 1, draft: true, questions: [] },
-    { id: "qs-math", lessonId: "math-open", version: 1, draft: true, questions: [] },
-    { id: "qs-closed", lessonId: "sci-closed", version: 1, draft: true, questions: [] },
+    { id: "qs-sci", lessonId: "sci", version: 1, draft: true, frozen: false, questions: [] },
+    { id: "qs-math", lessonId: "math-open", version: 1, draft: true, frozen: false, questions: [] },
+    { id: "qs-closed", lessonId: "sci-closed", version: 1, draft: true, frozen: false, questions: [] },
   ],
   evaluations: [],
   retellings: [],

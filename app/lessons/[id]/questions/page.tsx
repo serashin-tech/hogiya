@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { canOpen } from "@/lib/access";
 import { currentUser } from "@/lib/current-user";
-import { latestSet } from "@/lib/publishing";
+import { latestSet, versionsOf } from "@/lib/publishing";
 import { store } from "@/lib/store";
 import { deleteQuestionAction, saveConceptAction, saveQuestionAction } from "@/app/actions";
 import { FieldsForm } from "@/app/_components/fields-form";
@@ -80,6 +80,29 @@ export default async function QuestionsPage({ params }: PageProps<"/lessons/[id]
         <p className="mb-2 text-sm font-semibold">새 문항</p>
         <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={empty} submitLabel="문항 추가" />
       </div>
+
+      {versionsOf(store, id).length > 1 && (
+        <section className="mt-8">
+          <h2 className="mb-2 font-semibold">이전 버전</h2>
+          {versionsOf(store, id)
+            .slice(0, -1)
+            .reverse()
+            .map((v) => (
+              <details key={v.id} className="mb-2 rounded border p-3">
+                <summary>
+                  버전 {v.version} (시도 {store.attempts.filter((a) => a.questionSetId === v.id).length}회)
+                </summary>
+                <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                  {v.questions.map((q) => (
+                    <li key={q.id}>
+                      {q.stem} <span className="text-zinc-500">· 루브릭: {q.rubric}</span>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            ))}
+        </section>
+      )}
     </>
   );
 }

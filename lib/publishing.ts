@@ -29,6 +29,31 @@ export const latestSet = (data: Data, lessonId: string): QuestionSet | undefined
     .filter((s) => s.lessonId === lessonId)
     .reduce<QuestionSet | undefined>((a, s) => (!a || s.version > a.version ? s : a), undefined);
 
+export const versionsOf = (data: Data, lessonId: string): QuestionSet[] =>
+  data.questionSets.filter((s) => s.lessonId === lessonId).sort((a, b) => a.version - b.version);
+
+/**
+ * 고칠 문항 세트를 돌려준다. 공개된 적 있는 세트는 덮어쓰지 않고 복사해서 새 버전을 만든다(ADR 0001).
+ * 수업이 공개 중이면 새 버전이 곧바로 학생에게 쓰이므로 굳은 채로 시작한다.
+ */
+function editableSet(data: Data, lesson: Lesson): QuestionSet {
+  const latest = latestSet(data, lesson.id);
+  if (!latest) {
+    const first: QuestionSet = { id: newId("qs"), lessonId: lesson.id, version: 1, draft: false, frozen: false, questions: [] };
+    data.questionSets.push(first);
+    return first;
+  }
+  if (!latest.frozen) return latest;
+  const next: QuestionSet = {
+    ...structuredClone(latest),
+    id: newId("qs"),
+    version: latest.version + 1,
+    frozen: lesson.state === "공개",
+  };
+  data.questionSets.push(next);
+  return next;
+}
+
 /** 공개 조건 검사. 부족한 항목을 문장으로 돌려주고, 갖춰졌으면 빈 목록이다. */
 export function checkPublishable(data: Data, lessonId: string): string[] {
   const questions = latestSet(data, lessonId)?.questions ?? [];
@@ -59,6 +84,10 @@ export function setLessonState(data: Data, user: User, lessonId: string, target:
     if (issues.length) return fail(Object.fromEntries(issues.map((m, i) => [`issue-${i}`, m])));
   }
   lesson.state = target;
+  if (target === "공개") {
+    const set = latestSet(data, lessonId);
+    if (set) set.frozen = true;
+  }
   return ok();
 }
 
@@ -84,7 +113,8 @@ export function saveConcept(
 }
 
 export function saveQuestion(data: Data, user: User, lessonId: string, input: QuestionInput): Result<string> {
-  if (!teacherLesson(data, user, lessonId)) return denied();
+  const lesson = teacherLesson(data, user, lessonId);
+  if (!lesson) return denied();
 
   const errors: Record<string, string> = {};
   const picked = input.choices.map((c, i) => ({ text: c.trim(), i })).filter((c) => c.text);
@@ -99,11 +129,10 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
   if (!input.stem.trim()) errors.stem = "지문을 입력하세요";
   if (Object.keys(errors).length) return fail(errors);
 
-  let set = latestSet(data, lessonId);
-  if (!set) {
-    set = { id: newId("qs"), lessonId, version: 1, draft: false, questions: [] };
-    data.questionSets.push(set);
-  }
+  // 없는 문항을 고치려는 요청은 새 버전을 만들기 전에 거절한다.
+  if (input.id && !latestSet(data, lessonId)?.questions.some((q) => q.id === input.id)) return denied();
+
+  const set = editableSet(data, lesson);
   const fields = {
     stem: input.stem.trim(),
     choices: picked.map((c) => c.text),
@@ -113,7 +142,6 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
     rubric: input.rubric.trim(),
   };
   const existing = input.id ? set.questions.find((q) => q.id === input.id) : undefined;
-  if (input.id && !existing) return denied();
   if (existing) {
     Object.assign(existing, fields);
     return ok(existing.id);
@@ -124,8 +152,10 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
 }
 
 export function deleteQuestion(data: Data, user: User, lessonId: string, questionId: string): Result {
-  if (!teacherLesson(data, user, lessonId)) return denied();
-  const set = latestSet(data, lessonId);
-  if (set) set.questions = set.questions.filter((q) => q.id !== questionId);
+  const lesson = teacherLesson(data, user, lessonId);
+  if (!lesson) return denied();
+  if (!latestSet(data, lessonId)?.questions.some((q) => q.id === questionId)) return ok();
+  const set = editableSet(data, lesson);
+  set.questions = set.questions.filter((q) => q.id !== questionId);
   return ok();
 }

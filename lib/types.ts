@@ -33,6 +33,8 @@ export type QuestionSet = {
   version: number;
   /** 검수 전 초안이면 화면에 표시한다. */
   draft: boolean;
+  /** 공개된 적이 있으면 true. 굳은 세트를 고치면 새 버전이 된다(ADR 0001). */
+  frozen: boolean;
   questions: Question[];
 };
 

@@ -42,6 +42,7 @@ const seed: Data = {
       lessonId: "l-electric",
       version: 1,
       draft: true, // 검수 전 초안
+      frozen: true, // 이미 공개된 수업
       questions: [
         q(1, "전구 2개를 직렬로 연결하면 전구 1개일 때보다 밝기가 어떻게 되나요?", ["더 밝다", "더 어둡다", "같다"], 1, "k-series-parallel", "직렬이면 전류가 줄어 어두워짐을 안다."),
         q(2, "전구 2개를 병렬로 연결하고 한 개를 빼면 다른 전구는?", ["꺼진다", "계속 켜진다", "더 어두워진다"], 1, "k-series-parallel", "병렬은 갈래마다 독립임을 안다."),
