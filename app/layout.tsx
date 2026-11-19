@@ -21,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <RoleSwitcher />
           </Suspense>
         </header>
-        <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
           <Suspense>{children}</Suspense>
         </main>
       </body>

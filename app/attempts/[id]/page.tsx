@@ -4,7 +4,8 @@ import { canOpen } from "@/lib/access";
 import { currentUser } from "@/lib/current-user";
 import { buildReview } from "@/lib/review";
 import { store } from "@/lib/store";
-import { saveRetellingAction } from "@/app/actions";
+import { askHogiAction, saveRetellingAction } from "@/app/actions";
+import { HogiPanel } from "@/app/_components/hogi-panel";
 import { FieldsForm } from "@/app/_components/fields-form";
 
 const levelStyle = {
@@ -14,8 +15,9 @@ const levelStyle = {
 } as const;
 
 // 학생의 결과·복습 화면(S05). 교사의 개인 답안 화면은 08번 티켓에서 만든다.
-export default async function AttemptPage({ params }: PageProps<"/attempts/[id]">) {
+export default async function AttemptPage({ params, searchParams }: PageProps<"/attempts/[id]">) {
   const { id } = await params;
+  const { concept: conceptParam } = await searchParams;
   const user = await currentUser();
   if (user.role !== "student" || !canOpen(store, user, { kind: "attempt", id })) notFound();
 
@@ -23,6 +25,11 @@ export default async function AttemptPage({ params }: PageProps<"/attempts/[id]"
   const attempt = store.attempts.find((a) => a.id === id)!;
   const set = store.questionSets.find((s) => s.id === attempt.questionSetId)!;
   const lesson = store.lessons.find((l) => l.id === set.lessonId)!;
+  // 호기 패널의 문맥: 왼쪽에서 고른 개념. 고르지 않았으면 가장 먼저 "더 알아봐요"인 개념, 없으면 첫 개념이다.
+  const current =
+    review.cards.find((c) => c.conceptId === conceptParam) ??
+    review.cards.find((c) => c.level === "더 알아봐요") ??
+    review.cards[0];
 
   return (
     <>
@@ -36,9 +43,10 @@ export default async function AttemptPage({ params }: PageProps<"/attempts/[id]"
 
       {review.allKnown && <p className="mb-4 rounded bg-green-50 p-3">모두 잘 알고 있어요.</p>}
 
+      <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
       <ul className="space-y-4">
         {review.cards.map((c) => (
-          <li key={c.conceptId} className="rounded border p-4">
+          <li key={c.conceptId} className={`rounded border p-4 ${c.conceptId === current?.conceptId ? "border-black" : ""}`}>
             <h2 className="font-semibold">
               {c.name}{" "}
               <span className={`ml-2 rounded px-2 py-0.5 text-sm ${levelStyle[c.level]}`}>{c.level}</span>
@@ -51,6 +59,11 @@ export default async function AttemptPage({ params }: PageProps<"/attempts/[id]"
               ))}
             </ul>
             {c.activityGuide && <p className="mt-3 rounded bg-amber-50 p-2">확인 활동: {c.activityGuide}</p>}
+            <p className="mt-2 text-sm">
+              <Link href={`/attempts/${id}?concept=${c.conceptId}`} className="underline" scroll={false}>
+                이 개념을 호기에게 물어보기
+              </Link>
+            </p>
             <div className="mt-3">
               <FieldsForm
                 action={saveRetellingAction}
@@ -62,6 +75,12 @@ export default async function AttemptPage({ params }: PageProps<"/attempts/[id]"
           </li>
         ))}
       </ul>
+      {current && (
+        <aside className="md:sticky md:top-4 md:self-start">
+          <HogiPanel key={current.conceptId} action={askHogiAction} attemptId={id} concept={{ id: current.conceptId, name: current.name }} />
+        </aside>
+      )}
+      </div>
     </>
   );
 }

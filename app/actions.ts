@@ -5,10 +5,12 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
 import { submitAttempt } from "@/lib/attempts";
+import { askHogi } from "@/lib/hogi";
 import { saveRetelling } from "@/lib/review";
 import { deleteQuestion, latestSet, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
 import { addMaterial, createLesson, deleteMaterial, updateMaterial } from "@/lib/teaching";
 import type { FormState } from "./_components/fields-form";
+import type { HogiState } from "./_components/hogi-panel";
 import type { Subject } from "@/lib/types";
 
 const text = (f: FormData, k: string) => String(f.get(k) ?? "");
@@ -101,4 +103,11 @@ export async function saveRetellingAction(_: FormState, f: FormData): Promise<Fo
   if (!r.ok) return { errors: r.errors, values: values(f, ["text"]) };
   revalidatePath("/", "layout");
   return {};
+}
+
+export async function askHogiAction(prev: HogiState, f: FormData): Promise<HogiState> {
+  const question = text(f, "question");
+  // 호기는 읽기만 한다. 실패해도 askHogi가 오류 응답으로 바꿔 돌려주므로 시도와 결과는 건드리지 않는다.
+  const reply = askHogi(store, await currentUser(), text(f, "attemptId"), text(f, "conceptId"), question);
+  return { turns: [...prev.turns, { question, ...reply }] };
 }
