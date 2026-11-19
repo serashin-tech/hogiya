@@ -17,7 +17,7 @@ export type Lesson = {
 };
 export type Material = { id: string; lessonId: string; title: string; body: string };
 
-export type Concept = { id: string; name: string; activityGuide: string };
+export type Concept = { id: string; lessonId: string; name: string; activityGuide: string };
 export type Question = {
   id: string;
   stem: string;

@@ -25,11 +25,13 @@ const seed: Data = {
   concepts: [
     {
       id: "k-series-parallel",
+      lessonId: "l-electric",
       name: "전지·전구의 직렬·병렬연결",
       activityGuide: "전구 2개를 직렬과 병렬로 각각 연결해 밝기를 비교해 보세요.",
     },
     {
       id: "k-circuit",
+      lessonId: "l-electric",
       name: "전기 회로의 구성",
       activityGuide: "전지, 전구, 스위치를 끊김 없이 이어 불을 켜 보세요.",
     },

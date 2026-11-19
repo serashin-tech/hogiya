@@ -1,4 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { canStartAttempt } from "@/lib/attempts";
+import { StateForm } from "@/app/_components/state-form";
+import { setStateAction } from "@/app/actions";
 import { canOpen } from "@/lib/access";
 import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
@@ -21,6 +25,29 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
         {lesson.subject} · {lesson.state}
         {sets.some((s) => s.draft) && " · 검수 전 초안"}
       </p>
+      {isTeacher && (
+        <section className="mb-6 space-y-3">
+          <p>
+            <Link href={`/lessons/${id}/questions`} className="underline">
+              문항과 개념 편집
+            </Link>
+          </p>
+          {lesson.state === "공개" ? (
+            <StateForm action={setStateAction} lessonId={id} target="마감" />
+          ) : (
+            <StateForm action={setStateAction} lessonId={id} target="공개" />
+          )}
+        </section>
+      )}
+      {!isTeacher && (
+        <section className="mb-6">
+          {canStartAttempt(store, user, id) ? (
+            <p>선진단을 풀 수 있어요.</p>
+          ) : (
+            <p className="text-sm">마감한 수업이에요. 이전 결과는 계속 볼 수 있어요.</p>
+          )}
+        </section>
+      )}
       <h2 className="mb-2 font-semibold">수업 자료</h2>
       {materials.length === 0 && <p className="text-sm">등록된 자료가 없습니다.</p>}
       <ul className="space-y-4">
