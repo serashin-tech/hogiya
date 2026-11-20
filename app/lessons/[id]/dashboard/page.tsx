@@ -22,8 +22,9 @@ export default async function DashboardPage({ params }: PageProps<"/lessons/[id]
       </p>
 
       {d.empty ? (
-        <div className="space-y-3">
-          <p>아직 선진단을 한 학생이 없어요.</p>
+        <div className="card space-y-3">
+          <p className="font-semibold">아직 선진단을 한 학생이 없어요.</p>
+          <p className="text-sm text-muted">학생이 선진단을 제출하면 개념별 이해 수준이 여기에 모입니다.</p>
           {lesson.state === "공개" && (
             <form action={loadSyntheticAction}>
               <input type="hidden" name="lessonId" value={id} />

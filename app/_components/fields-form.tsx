@@ -5,6 +5,8 @@ import { useActionState, useId } from "react";
 export type FormState = { errors?: Record<string, string>; values?: Record<string, string> };
 export type Field = { name: string; label: string; multiline?: boolean; defaultValue?: string };
 
+const INITIAL: FormState = {};
+
 /** 서버 액션과 연결된 입력 폼. 비어 있는 칸 아래에 안내 문구를 보여 주고 입력값은 지키지 않고 남긴다. */
 export function FieldsForm({
   action,
@@ -17,8 +19,10 @@ export function FieldsForm({
   hidden?: Record<string, string>;
   submitLabel: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, {});
+  const [state, formAction, pending] = useActionState(action, INITIAL);
   const uid = useId();
+  // 액션이 끝나면 새 상태 객체가 돌아온다. 오류 없이 끝났으면 저장됐다고 알린다.
+  const saved = !pending && state !== INITIAL && !state.errors;
   return (
     <form action={formAction} className="space-y-3">
       {Object.entries(hidden).map(([k, v]) => (
@@ -53,9 +57,14 @@ export function FieldsForm({
           {state.errors.form}
         </p>
       )}
-      <button type="submit" disabled={pending} className="btn-primary">
-        {pending ? "저장하는 중…" : submitLabel}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="submit" disabled={pending} className="btn-primary">
+          {pending ? "저장하는 중…" : submitLabel}
+        </button>
+        <span role="status" className="text-sm font-semibold text-brand">
+          {saved ? "✓ 저장했어요" : ""}
+        </span>
+      </div>
     </form>
   );
 }

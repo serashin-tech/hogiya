@@ -14,6 +14,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-10 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2"
+        >
+          본문 바로가기
+        </a>
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface px-4 py-3 sm:px-6">
           <Link href="/" className="text-lg font-bold text-ink no-underline">
             호기야
@@ -22,8 +28,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <RoleSwitcher />
           </Suspense>
         </header>
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
-          <Suspense>{children}</Suspense>
+        <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+          <Suspense
+            fallback={
+              <p role="status" className="card animate-pulse text-muted">
+                불러오는 중이에요…
+              </p>
+            }
+          >
+            {children}
+          </Suspense>
         </main>
       </body>
     </html>
