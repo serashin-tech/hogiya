@@ -41,7 +41,7 @@ export default async function AttemptPage({ params, searchParams }: PageProps<"/
 
       {review.allKnown && <p className="lv-high mb-4 rounded-lg p-3 font-semibold">모두 잘 알고 있어요.</p>}
 
-      <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+      <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <ul className="space-y-4">
         {review.cards.map((c) => (
           <li key={c.conceptId} className={`card ${c.conceptId === current?.conceptId ? "!border-brand ring-2 ring-brand" : ""}`}>
@@ -61,6 +61,7 @@ export default async function AttemptPage({ params, searchParams }: PageProps<"/
               <Link href={`/attempts/${id}?concept=${c.conceptId}`} scroll={false}>
                 이 개념을 호기에게 물어보기
               </Link>
+              <span className="font-normal text-muted md:hidden"> (호기 패널은 이 화면 맨 아래에 있어요)</span>
             </p>
             <div className="mt-3">
               <FieldsForm

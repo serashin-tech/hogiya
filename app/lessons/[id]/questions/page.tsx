@@ -42,6 +42,7 @@ export default async function QuestionsPage({ params }: PageProps<"/lessons/[id]
               ]}
               hidden={{ id: c.id, lessonId: id }}
               submitLabel="저장"
+              secondary
             />
           </li>
         ))}
@@ -63,7 +64,7 @@ export default async function QuestionsPage({ params }: PageProps<"/lessons/[id]
         {set?.questions.map((q, i) => (
           <li key={q.id} className="card">
             <p className="mb-2 text-sm font-semibold">{i + 1}번 문항</p>
-            <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={q} submitLabel="저장" />
+            <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={q} submitLabel="저장" secondary />
             <form action={deleteQuestionAction} className="mt-2">
               <input type="hidden" name="lessonId" value={id} />
               <input type="hidden" name="id" value={q.id} />

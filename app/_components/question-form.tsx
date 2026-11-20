@@ -20,12 +20,15 @@ export function QuestionForm({
   concepts,
   defaults,
   submitLabel,
+  secondary = false,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   lessonId: string;
   concepts: { id: string; name: string }[];
   defaults: QuestionDefaults;
   submitLabel: string;
+  /** 목록 안에서 반복되는 수정 폼이면 true. 보조 단추 모양으로 그린다. */
+  secondary?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   const e = state.errors ?? {};
@@ -81,7 +84,7 @@ export function QuestionForm({
         루브릭 (판단 근거 문장)
         <textarea name="rubric" rows={2} defaultValue={defaults.rubric} className="mt-1 w-full font-normal" />
       </label>
-      <button type="submit" disabled={pending} className="btn-primary">
+      <button type="submit" disabled={pending} className={secondary ? "" : "btn-primary"}>
         {submitLabel}
       </button>
     </form>

@@ -29,7 +29,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
       </p>
       {isTeacher && (
         <section className="card mb-8 space-y-3">
-          <p className="flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+          <p className="flex flex-wrap gap-x-6 gap-y-2 font-semibold">
             <Link href={`/lessons/${id}/questions`}>문항과 개념 편집</Link>
             <Link href={`/lessons/${id}/dashboard`}>대시보드</Link>
           </p>
@@ -55,7 +55,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
             <p className="text-sm text-muted">마감한 수업이에요. 이전 결과는 계속 볼 수 있어요.</p>
           )}
           {myAttempts.length > 0 && (
-            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               {myAttempts.map((a, i) => (
                 <li key={a.id}>
                   <Link href={`/attempts/${a.id}`}>{i + 1}번째 시도 결과</Link>
@@ -79,6 +79,7 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
                 ]}
                 hidden={{ id: m.id }}
                 submitLabel="수정"
+                secondary
               />
               <form action={deleteMaterialAction} className="mt-2">
                 <input type="hidden" name="id" value={m.id} />

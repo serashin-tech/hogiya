@@ -40,7 +40,8 @@ export default async function DashboardPage({ params }: PageProps<"/lessons/[id]
             <p className="mb-3 text-sm">최신 버전(버전 {d.version})으로 푼 학생이 아직 없어서 분포가 비어 있어요.</p>
           )}
           <h2 className="mb-2 text-lg font-semibold">개념별 이해 수준 (학생마다 최근 시도 기준)</h2>
-          <div className="card mb-8 overflow-x-auto !p-0">
+          <p className="mb-1 text-xs text-muted sm:hidden">표는 옆으로 밀어서 볼 수 있어요.</p>
+          <div className="card mb-8 overflow-x-auto !p-0" tabIndex={0} role="region" aria-label="개념별 이해 수준 표">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-line text-left">

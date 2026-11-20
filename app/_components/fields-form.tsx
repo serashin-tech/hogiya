@@ -13,11 +13,14 @@ export function FieldsForm({
   fields,
   hidden = {},
   submitLabel,
+  secondary = false,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   fields: Field[];
   hidden?: Record<string, string>;
   submitLabel: string;
+  /** 목록 안에서 반복되는 수정 폼이면 true. 한 화면의 주 단추를 늘리지 않으려고 보조 모양으로 그린다. */
+  secondary?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const uid = useId();
@@ -58,7 +61,7 @@ export function FieldsForm({
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="btn-primary">
+        <button type="submit" disabled={pending} className={secondary ? "" : "btn-primary"}>
           {pending ? "저장하는 중…" : submitLabel}
         </button>
         <span role="status" className="text-sm font-semibold text-brand">
