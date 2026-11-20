@@ -18,11 +18,11 @@ export function StateForm({
     <form action={formAction} className="inline-block align-top">
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="target" value={target} />
-      <button type="submit" disabled={pending} className="rounded border px-3 py-1">
+      <button type="submit" disabled={pending} className={target === "공개" ? "btn-primary" : ""}>
         {target}하기
       </button>
       {state.errors && (
-        <ul className="mt-2 list-disc pl-5 text-sm text-red-600" role="alert">
+        <ul className="mt-2 list-disc pl-5 text-sm text-danger" role="alert">
           {Object.values(state.errors).map((m) => (
             <li key={m}>{m}</li>
           ))}

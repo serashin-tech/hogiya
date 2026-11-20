@@ -43,31 +43,43 @@ export function DiagnoseForm({
             id={`q-${q.id}`}
             tabIndex={-1}
             aria-invalid={error ? true : undefined}
-            className={`rounded border p-3 ${error ? "border-red-600 bg-red-50" : ""}`}
+            className={`card w-full ${error ? "!border-danger !bg-danger-soft" : ""}`}
           >
-            <legend className="px-1 font-semibold">
-              {i + 1}. {q.stem}
+            <legend className="px-1 text-lg font-semibold">
+              <span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-[var(--brand-ink)]">
+                {i + 1}
+              </span>
+              {q.stem}
             </legend>
-            {q.choices.map((c, ci) => (
-              <label key={ci} className="block py-0.5">
-                <input
-                  type="radio"
-                  name={`choice-${q.id}`}
-                  value={ci}
-                  defaultChecked={state.values?.[`choice-${q.id}`] === String(ci)}
-                />{" "}
-                {c}
-              </label>
-            ))}
-            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+            <div className="mt-2 space-y-2">
+              {q.choices.map((c, ci) => (
+                <label
+                  key={ci}
+                  className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line px-3 py-2 hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
+                >
+                  <input
+                    type="radio"
+                    name={`choice-${q.id}`}
+                    value={ci}
+                    defaultChecked={state.values?.[`choice-${q.id}`] === String(ci)}
+                  />
+                  <span>{c}</span>
+                </label>
+              ))}
+            </div>
+            {error && (
+              <p className="mt-2 text-sm font-semibold text-danger" role="alert">
+                {error}
+              </p>
+            )}
             {q.hasReason && (
-              <label className="mt-2 block text-sm">
-                왜 그렇게 생각했나요? (쓰지 않아도 돼요)
+              <label className="mt-3 block text-sm font-semibold">
+                왜 그렇게 생각했나요? <span className="font-normal text-muted">(쓰지 않아도 돼요)</span>
                 <textarea
                   name={`reason-${q.id}`}
                   rows={2}
                   defaultValue={state.values?.[`reason-${q.id}`] ?? ""}
-                  className="w-full rounded border px-2 py-1"
+                  className="mt-1 w-full font-normal"
                 />
               </label>
             )}
@@ -75,11 +87,11 @@ export function DiagnoseForm({
         );
       })}
       {state.errors?.form && (
-        <p className="text-red-600" role="alert">
+        <p className="text-danger" role="alert">
           {state.errors.form}
         </p>
       )}
-      <button type="submit" disabled={pending} className="rounded border px-4 py-2">
+      <button type="submit" disabled={pending} className="btn-primary !px-6 !py-2 text-lg">
         {pending ? "제출하는 중…" : "제출하기"}
       </button>
     </form>

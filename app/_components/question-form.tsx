@@ -29,20 +29,20 @@ export function QuestionForm({
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   const e = state.errors ?? {};
-  const err = (k: string) => e[k] && <p className="text-sm text-red-600">{e[k]}</p>;
+  const err = (k: string) => e[k] && <p className="text-sm text-danger">{e[k]}</p>;
   return (
-    <form action={formAction} className="space-y-2">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="lessonId" value={lessonId} />
       {defaults.id && <input type="hidden" name="id" value={defaults.id} />}
-      <label className="block text-sm">
+      <label className="block text-sm font-semibold">
         지문
-        <textarea name="stem" rows={2} defaultValue={defaults.stem} className="w-full rounded border px-2 py-1" />
+        <textarea name="stem" rows={2} defaultValue={defaults.stem} className="mt-1 w-full font-normal" />
       </label>
       {err("stem")}
-      <div className="text-sm">
+      <div className="space-y-2 text-sm font-semibold">
         선택지 (정답을 하나 고르세요)
         {Array.from({ length: CHOICE_SLOTS }, (_, i) => (
-          <div key={i} className="flex items-center gap-2">
+          <div key={i} className="flex items-center gap-2 font-normal">
             <input
               type="radio"
               name="answer"
@@ -54,7 +54,7 @@ export function QuestionForm({
               type="text"
               name={`choice${i}`}
               defaultValue={defaults.choices[i] ?? ""}
-              className="w-full rounded border px-2 py-1"
+              className="w-full"
               aria-label={`${i + 1}번 선택지`}
             />
           </div>
@@ -65,9 +65,9 @@ export function QuestionForm({
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="hasReason" defaultChecked={defaults.hasReason} /> 이유 칸 두기
       </label>
-      <label className="block text-sm">
+      <label className="block text-sm font-semibold">
         연결 개념
-        <select name="conceptId" defaultValue={defaults.conceptId} className="ml-2 rounded border px-2 py-1">
+        <select name="conceptId" defaultValue={defaults.conceptId} className="ml-2 font-normal">
           <option value="">선택 안 함</option>
           {concepts.map((c) => (
             <option key={c.id} value={c.id}>
@@ -77,11 +77,11 @@ export function QuestionForm({
         </select>
       </label>
       {err("concept")}
-      <label className="block text-sm">
+      <label className="block text-sm font-semibold">
         루브릭 (판단 근거 문장)
-        <textarea name="rubric" rows={2} defaultValue={defaults.rubric} className="w-full rounded border px-2 py-1" />
+        <textarea name="rubric" rows={2} defaultValue={defaults.rubric} className="mt-1 w-full font-normal" />
       </label>
-      <button type="submit" disabled={pending} className="rounded border px-3 py-1">
+      <button type="submit" disabled={pending} className="btn-primary">
         {submitLabel}
       </button>
     </form>

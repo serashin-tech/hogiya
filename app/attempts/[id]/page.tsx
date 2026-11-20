@@ -9,9 +9,9 @@ import { HogiPanel } from "@/app/_components/hogi-panel";
 import { FieldsForm } from "@/app/_components/fields-form";
 
 const levelStyle = {
-  "더 알아봐요": "bg-amber-100 text-amber-900",
-  "거의 알아요": "bg-sky-100 text-sky-900",
-  "잘 알아요": "bg-green-100 text-green-900",
+  "더 알아봐요": "lv-low",
+  "거의 알아요": "lv-mid",
+  "잘 알아요": "lv-high",
 } as const;
 
 // 학생의 결과·복습 화면(S05). 교사의 개인 답안 화면은 08번 티켓에서 만든다.
@@ -34,33 +34,31 @@ export default async function AttemptPage({ params, searchParams }: PageProps<"/
   return (
     <>
       <p className="text-sm">
-        <Link href={`/lessons/${lesson.id}`} className="underline">
-          ← {lesson.title}
-        </Link>
+        <Link href={`/lessons/${lesson.id}`}>← {lesson.title}</Link>
       </p>
-      <h1 className="my-2 text-2xl font-semibold">{lesson.title} 결과와 복습</h1>
-      {set.draft && <p className="mb-4 text-sm text-zinc-500">검수 전 초안 문항으로 만든 결과입니다.</p>}
+      <h1 className="mb-6 mt-2 text-3xl font-bold">{lesson.title} 결과와 복습</h1>
+      {set.draft && <p className="mb-4 text-sm text-muted">검수 전 초안 문항으로 만든 결과입니다.</p>}
 
-      {review.allKnown && <p className="mb-4 rounded bg-green-50 p-3">모두 잘 알고 있어요.</p>}
+      {review.allKnown && <p className="lv-high mb-4 rounded-lg p-3 font-semibold">모두 잘 알고 있어요.</p>}
 
       <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
       <ul className="space-y-4">
         {review.cards.map((c) => (
-          <li key={c.conceptId} className={`rounded border p-4 ${c.conceptId === current?.conceptId ? "border-black" : ""}`}>
-            <h2 className="font-semibold">
-              {c.name}{" "}
-              <span className={`ml-2 rounded px-2 py-0.5 text-sm ${levelStyle[c.level]}`}>{c.level}</span>
+          <li key={c.conceptId} className={`card ${c.conceptId === current?.conceptId ? "!border-brand ring-2 ring-brand" : ""}`}>
+            <h2 className="flex flex-wrap items-center gap-2 text-lg font-semibold">
+              {c.name}
+              <span className={`chip ${levelStyle[c.level]}`}>{c.level}</span>
             </h2>
-            <ul className="mt-2 text-sm">
+            <ul className="mt-2 space-y-1 text-sm text-muted">
               {c.evidence.map((e) => (
                 <li key={e.questionId}>
-                  {e.correct ? "맞혔어요" : "틀렸어요"} · {e.stem}
+                  <span className="font-semibold text-ink">{e.correct ? "맞혔어요" : "틀렸어요"}</span> · {e.stem}
                 </li>
               ))}
             </ul>
-            {c.activityGuide && <p className="mt-3 rounded bg-amber-50 p-2">확인 활동: {c.activityGuide}</p>}
-            <p className="mt-2 text-sm">
-              <Link href={`/attempts/${id}?concept=${c.conceptId}`} className="underline" scroll={false}>
+            {c.activityGuide && <p className="lv-low mt-3 rounded-lg p-3">확인 활동: {c.activityGuide}</p>}
+            <p className="mt-3 text-sm font-semibold">
+              <Link href={`/attempts/${id}?concept=${c.conceptId}`} scroll={false}>
                 이 개념을 호기에게 물어보기
               </Link>
             </p>

@@ -22,21 +22,16 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
   const myAttempts = store.attempts.filter((a) => a.studentId === user.id && setIds.has(a.questionSetId));
   return (
     <>
-      <h1 className="text-2xl font-semibold">{lesson.title}</h1>
-      <p className="mb-4 text-sm text-zinc-500">
+      <h1 className="text-3xl font-bold">{lesson.title}</h1>
+      <p className="mb-6 mt-1 text-sm text-muted">
         {lesson.subject} · {lesson.state}
         {sets.some((s) => s.draft) && " · 검수 전 초안"}
       </p>
       {isTeacher && (
-        <section className="mb-6 space-y-3">
-          <p>
-            <Link href={`/lessons/${id}/questions`} className="underline">
-              문항과 개념 편집
-            </Link>
-            {" · "}
-            <Link href={`/lessons/${id}/dashboard`} className="underline">
-              대시보드
-            </Link>
+        <section className="card mb-8 space-y-3">
+          <p className="flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+            <Link href={`/lessons/${id}/questions`}>문항과 개념 편집</Link>
+            <Link href={`/lessons/${id}/dashboard`}>대시보드</Link>
           </p>
           {lesson.state === "공개" ? (
             <StateForm action={setStateAction} lessonId={id} target="마감" />
@@ -46,35 +41,36 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
         </section>
       )}
       {!isTeacher && (
-        <section className="mb-6 space-y-2">
+        <section className="card mb-8 space-y-3">
           {canStartAttempt(store, user, id) ? (
             <p>
-              <Link href={`/lessons/${id}/diagnose`} className="underline">
+              <Link
+                href={`/lessons/${id}/diagnose`}
+                className="inline-flex min-h-11 items-center rounded-lg bg-brand px-6 text-lg font-semibold text-[var(--brand-ink)] no-underline hover:brightness-90"
+              >
                 {myAttempts.length ? "새로 풀기" : "선진단 풀기"}
               </Link>
             </p>
           ) : (
-            <p className="text-sm">마감한 수업이에요. 이전 결과는 계속 볼 수 있어요.</p>
+            <p className="text-sm text-muted">마감한 수업이에요. 이전 결과는 계속 볼 수 있어요.</p>
           )}
           {myAttempts.length > 0 && (
-            <ul className="list-disc pl-5 text-sm">
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {myAttempts.map((a, i) => (
                 <li key={a.id}>
-                  <Link href={`/attempts/${a.id}`} className="underline">
-                    {i + 1}번째 시도 결과
-                  </Link>
+                  <Link href={`/attempts/${a.id}`}>{i + 1}번째 시도 결과</Link>
                 </li>
               ))}
             </ul>
           )}
         </section>
       )}
-      <h2 className="mb-2 font-semibold">수업 자료</h2>
-      {materials.length === 0 && <p className="text-sm">등록된 자료가 없습니다.</p>}
+      <h2 className="mb-3 text-lg font-semibold">수업 자료</h2>
+      {materials.length === 0 && <p className="text-sm text-muted">등록된 자료가 없습니다.</p>}
       <ul className="space-y-4">
         {materials.map((m) =>
           isTeacher ? (
-            <li key={m.id} className="rounded border p-3">
+            <li key={m.id} className="card">
               <FieldsForm
                 action={saveMaterialAction}
                 fields={[
@@ -86,19 +82,21 @@ export default async function LessonPage({ params }: PageProps<"/lessons/[id]">)
               />
               <form action={deleteMaterialAction} className="mt-2">
                 <input type="hidden" name="id" value={m.id} />
-                <button type="submit" className="rounded border px-3 py-1 text-sm">
+                <button type="submit" className="!min-h-0 !py-1 text-sm">
                   삭제
                 </button>
               </form>
             </li>
           ) : (
-            <li key={m.id}>{m.title}</li>
+            <li key={m.id} className="card">
+              {m.title}
+            </li>
           ),
         )}
       </ul>
       {isTeacher && (
-        <section className="mt-6">
-          <h3 className="mb-2 font-semibold">자료 추가</h3>
+        <section className="card mt-8">
+          <h3 className="mb-3 text-lg font-semibold">자료 추가</h3>
           <FieldsForm
             action={saveMaterialAction}
             fields={[

@@ -17,29 +17,29 @@ export function HogiPanel({
 }) {
   const [state, formAction, pending] = useActionState(action, { turns: [] });
   return (
-    <section aria-label="호기 패널" className="rounded border p-4">
-      <h2 className="font-semibold">호기</h2>
-      <p className="mb-1 inline-block rounded bg-zinc-100 px-2 py-0.5 text-xs">모의 응답입니다</p>
+    <section aria-label="호기 패널" className="card">
+      <h2 className="text-lg font-semibold">호기</h2>
+      <p className="chip mb-2 bg-brand-soft !text-xs text-brand">모의 응답입니다</p>
       <p className="mb-3 text-sm">
         지금 보는 개념: <strong>{concept.name}</strong>
       </p>
       <ul className="mb-3 space-y-3" aria-live="polite">
         {state.turns.map((t, i) => (
-          <li key={i} className="text-sm">
-            <p className="font-semibold">나: {t.question}</p>
-            <p>호기: {t.text}</p>
-            {t.sources.length > 0 && <p className="text-xs text-zinc-500">근거 자료: {t.sources.join(", ")}</p>}
+          <li key={i} className="space-y-1 text-sm">
+            <p className="ml-auto w-fit max-w-full rounded-lg bg-brand-soft px-3 py-2 font-semibold">{t.question}</p>
+            <p className="w-fit max-w-full rounded-lg border border-line px-3 py-2">{t.text}</p>
+            {t.sources.length > 0 && <p className="text-xs text-muted">근거 자료: {t.sources.join(", ")}</p>}
           </li>
         ))}
       </ul>
       <form action={formAction} className="space-y-2">
         <input type="hidden" name="attemptId" value={attemptId} />
         <input type="hidden" name="conceptId" value={concept.id} />
-        <label className="block text-sm">
+        <label className="block text-sm font-semibold">
           호기에게 물어보기
-          <input name="question" type="text" required className="w-full rounded border px-2 py-1" />
+          <input name="question" type="text" required className="mt-1 w-full font-normal" />
         </label>
-        <button type="submit" disabled={pending} className="rounded border px-3 py-1 text-sm">
+        <button type="submit" disabled={pending} className="btn-primary text-sm">
           {pending ? "생각하는 중…" : "묻기"}
         </button>
       </form>

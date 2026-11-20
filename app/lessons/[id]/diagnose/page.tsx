@@ -18,12 +18,10 @@ export default async function DiagnosePage({ params }: PageProps<"/lessons/[id]/
   return (
     <>
       <p className="text-sm">
-        <Link href={`/lessons/${id}`} className="underline">
-          ← {lesson.title}
-        </Link>
+        <Link href={`/lessons/${id}`}>← {lesson.title}</Link>
       </p>
-      <h1 className="my-2 text-2xl font-semibold">{lesson.title} 선진단</h1>
-      {set?.draft && <p className="mb-4 text-sm text-zinc-500">검수 전 초안 문항입니다.</p>}
+      <h1 className="mb-6 mt-2 text-3xl font-bold">{lesson.title} 선진단</h1>
+      {set?.draft && <p className="mb-4 text-sm text-muted">검수 전 초안 문항입니다.</p>}
       {canStartAttempt(store, user, id) && set ? (
         <DiagnoseForm
           action={submitAttemptAction}

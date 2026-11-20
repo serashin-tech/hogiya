@@ -20,7 +20,7 @@ export function FieldsForm({
   const [state, formAction, pending] = useActionState(action, {});
   const uid = useId();
   return (
-    <form action={formAction} className="space-y-2">
+    <form action={formAction} className="space-y-3">
       {Object.entries(hidden).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}
@@ -31,21 +31,30 @@ export function FieldsForm({
           name: f.name,
           defaultValue: state.values?.[f.name] ?? f.defaultValue ?? "",
           "aria-invalid": error ? true : undefined,
-          className: `w-full rounded border px-2 py-1 ${error ? "border-red-600" : ""}`,
+          "aria-describedby": error ? `${uid}-${f.name}-error` : undefined,
+          className: "w-full",
         };
         return (
           <div key={f.name}>
-            <label htmlFor={common.id} className="block text-sm">
+            <label htmlFor={common.id} className="mb-1 block text-sm font-semibold">
               {f.label}
             </label>
             {f.multiline ? <textarea rows={3} {...common} /> : <input type="text" {...common} />}
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <p id={`${uid}-${f.name}-error`} className="mt-1 text-sm text-danger">
+                {error}
+              </p>
+            )}
           </div>
         );
       })}
-      {state.errors?.form && <p className="text-sm text-red-600">{state.errors.form}</p>}
-      <button type="submit" disabled={pending} className="rounded border px-3 py-1">
-        {submitLabel}
+      {state.errors?.form && (
+        <p className="text-sm text-danger" role="alert">
+          {state.errors.form}
+        </p>
+      )}
+      <button type="submit" disabled={pending} className="btn-primary">
+        {pending ? "저장하는 중…" : submitLabel}
       </button>
     </form>
   );

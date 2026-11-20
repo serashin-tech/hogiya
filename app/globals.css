@@ -1,26 +1,198 @@
 @import "tailwindcss";
 
+/* 호기야 화면 토큰. 학생(초등 6학년)이 오래 읽어도 편하도록 대비를 높이고 여백을 넉넉히 둔다. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #1b2430;
+  --muted: #5b6676;
+  --line: #d9dee6;
+  --brand: #0f766e;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3f4f1;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --lv-low-bg: #fff1cc;
+  --lv-low-fg: #6b4a00;
+  --lv-mid-bg: #dff0fb;
+  --lv-mid-fg: #0b4a6f;
+  --lv-high-bg: #dcf5e4;
+  --lv-high-fg: #14532d;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #11161d;
+    --surface: #1a212b;
+    --ink: #eef1f5;
+    --muted: #a3adbb;
+    --line: #2f3946;
+    --brand: #4fd1c5;
+    --brand-ink: #06302c;
+    --brand-soft: #16322f;
+    --danger: #ff8a7e;
+    --danger-soft: #3a1e1b;
+    --lv-low-bg: #4a3a10;
+    --lv-low-fg: #ffe29a;
+    --lv-mid-bg: #153a52;
+    --lv-mid-fg: #b8e2fa;
+    --lv-high-bg: #17432a;
+    --lv-high-fg: #b9f0cc;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 한글은 어절 단위로만 줄바꿈하고, 긴 줄은 읽기 좋게 다듬는다. */
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.7;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  a {
+    color: var(--brand);
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input[type="text"],
+  textarea,
+  select {
+    background: var(--surface);
+    color: inherit;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    line-height: 1.5;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--brand);
+  }
+
+  [aria-invalid="true"] {
+    border-color: var(--danger);
+  }
+
+  input[type="radio"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--brand);
+    vertical-align: -0.15em;
+  }
+
+  /* 기본 단추는 보조 단추 모양이다. 주 행동은 .btn-primary를 더한다. */
+  button {
+    cursor: pointer;
+    min-height: 2.5rem;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+
+  button:hover:not(:disabled) {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--brand-ink);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--brand);
+    filter: brightness(0.92);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .chip {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.1rem 0.7rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .lv-low {
+    background: var(--lv-low-bg);
+    color: var(--lv-low-fg);
+  }
+
+  .lv-mid {
+    background: var(--lv-mid-bg);
+    color: var(--lv-mid-fg);
+  }
+
+  .lv-high {
+    background: var(--lv-high-bg);
+    color: var(--lv-high-fg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -15,26 +15,29 @@ export default async function ConceptDetailPage({ params }: PageProps<"/lessons/
   return (
     <>
       <p className="text-sm">
-        <Link href={`/lessons/${id}/dashboard`} className="underline">
-          ← 대시보드
-        </Link>
+        <Link href={`/lessons/${id}/dashboard`}>← 대시보드</Link>
       </p>
-      <h1 className="my-2 text-2xl font-semibold">{concept.name}</h1>
-      {rows.length === 0 && <p>최신 버전으로 푼 학생이 아직 없어요.</p>}
+      <h1 className="mb-6 mt-2 text-3xl font-bold">{concept.name}</h1>
+      {rows.length === 0 && <p className="card text-muted">최신 버전으로 푼 학생이 아직 없어요.</p>}
       <ul className="space-y-4">
         {rows.map((r) => (
-          <li key={r.studentNumber} className="rounded border p-3">
-            <p className="font-semibold">
-              {r.studentNumber}번 <span className="ml-2 text-sm font-normal">{r.level}</span>
+          <li key={r.studentNumber} className="card">
+            <p className="flex flex-wrap items-center gap-2 font-semibold">
+              {r.studentNumber}번
+              <span
+                className={`chip ${r.level === "더 알아봐요" ? "lv-low" : r.level === "거의 알아요" ? "lv-mid" : "lv-high"}`}
+              >
+                {r.level}
+              </span>
             </p>
-            <ul className="mt-2 space-y-2 text-sm">
+            <ul className="mt-3 space-y-3 text-sm">
               {r.answers.map((a) => (
-                <li key={a.questionId}>
-                  <p>{a.stem}</p>
+                <li key={a.questionId} className="border-t border-line pt-3 first:border-0 first:pt-0">
+                  <p className="font-semibold">{a.stem}</p>
                   <p>
                     선택: {a.choice} ({a.correct ? "맞음" : "틀림"})
                   </p>
-                  {a.reason && <p className="text-zinc-600">이유: {a.reason}</p>}
+                  {a.reason && <p className="text-muted">이유: {a.reason}</p>}
                 </li>
               ))}
             </ul>
