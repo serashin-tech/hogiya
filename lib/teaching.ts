@@ -62,6 +62,36 @@ export function updateMaterial(
   return ok();
 }
 
+/**
+ * PowerPoint에서 뽑은 슬라이드를 수업 자료로 바꿔 넣는다. 슬라이드마다 자료 하나다.
+ * 같은 수업에 이전에 올린 파일의 자료는 지우고, 직접 쓴 자료는 남긴다("다른 파일로 바꾸기").
+ * 슬라이드가 없으면 이전 자료를 지우지 않고 거절한다.
+ */
+export function importDeck(
+  data: Data,
+  user: User,
+  lessonId: string,
+  fileName: string,
+  slides: { title: string; text: string }[],
+): Result<number> {
+  if (!canOpen(data, user, { kind: "lesson", id: lessonId }) || !isTeacher(user)) {
+    return fail({ lesson: "열 수 없는 자료입니다" });
+  }
+  if (slides.length === 0) return fail({ file: "가져올 슬라이드가 없습니다" });
+  data.materials = data.materials.filter((m) => !(m.lessonId === lessonId && m.origin));
+  for (const s of slides) {
+    const title = s.title.trim().slice(0, 100);
+    data.materials.push({
+      id: newId("m"),
+      lessonId,
+      title,
+      body: s.text.trim().slice(0, 2000) || title,
+      origin: fileName,
+    });
+  }
+  return ok(slides.length);
+}
+
 export function deleteMaterial(data: Data, user: User, materialId: string): Result {
   if (!canOpen(data, user, { kind: "material", id: materialId }) || !isTeacher(user)) {
     return fail({ material: "열 수 없는 자료입니다" });

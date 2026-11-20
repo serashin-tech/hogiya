@@ -15,7 +15,14 @@ export type Lesson = {
   title: string;
   state: PublishState;
 };
-export type Material = { id: string; lessonId: string; title: string; body: string };
+export type Material = {
+  id: string;
+  lessonId: string;
+  title: string;
+  body: string;
+  /** PowerPoint에서 가져온 슬라이드이면 원본 파일 이름. 직접 쓴 자료에는 없다. */
+  origin?: string;
+};
 
 export type Concept = { id: string; lessonId: string; name: string; activityGuide: string };
 export type Question = {
@@ -26,6 +33,8 @@ export type Question = {
   hasReason: boolean;
   conceptId: string;
   rubric: string;
+  /** 교사가 미리 적어 두는 예상 오개념. 판정과 집계에는 쓰지 않는다. */
+  misconception?: string;
 };
 export type QuestionSet = {
   id: string;

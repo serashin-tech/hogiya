@@ -1,5 +1,6 @@
 import { canOpen } from "./access";
 import { newId } from "./id";
+import type { SheetRow } from "./question-sheet";
 import { fail, ok, type Result } from "./result";
 import type { Data, Lesson, PublishState, Question, QuestionSet, User } from "./types";
 
@@ -14,6 +15,8 @@ export type QuestionInput = {
   /** 화면은 하나만 보내지만, 둘 이상이 오면 저장하지 않는다(S03). */
   conceptIds: string[];
   rubric: string;
+  /** 예상 오개념. 적지 않아도 된다. */
+  misconception?: string;
 };
 
 const denied = () => fail({ lesson: "열 수 없는 자료입니다" });
@@ -165,6 +168,7 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
     hasReason: input.hasReason,
     conceptId,
     rubric: input.rubric.trim(),
+    misconception: (input.misconception ?? "").trim(),
   };
   return editSet(data, lesson, (set) => {
     const existing = input.id ? set.questions.find((q) => q.id === input.id) : undefined;
@@ -176,6 +180,49 @@ export function saveQuestion(data: Data, user: User, lessonId: string, input: Qu
     set.questions.push(question);
     return question.id;
   });
+}
+
+/**
+ * 엑셀에서 읽은 줄을 문항으로 더한다. 기존 문항 뒤에 붙고, 한 줄이라도 틀리면 아무것도 저장하지 않는다.
+ * 개념은 이름으로 찾고, 없으면 새로 만든다. 먼저 복사본에서 끝까지 해 보고, 통과해야 실제 데이터에 적용한다.
+ */
+export function importQuestions(data: Data, user: User, lessonId: string, rows: SheetRow[]): Result<number> {
+  if (!teacherLesson(data, user, lessonId)) return denied();
+  if (rows.length === 0) return fail({ file: "올릴 문항이 없습니다. 첫 시트에 문항을 한 줄에 하나씩 적어 주세요" });
+
+  const apply = (target: Data): Result<number> => {
+    const errors: Record<string, string> = {};
+    for (const row of rows) {
+      const messages: string[] = [];
+      let conceptIds: string[] = [];
+      if (row.concept) {
+        const known = target.concepts.find((c) => c.lessonId === lessonId && c.name === row.concept);
+        const conceptId = known
+          ? known.id
+          : (() => {
+              const made = saveConcept(target, user, lessonId, { name: row.concept, activityGuide: row.activityGuide });
+              return made.ok ? made.value : "";
+            })();
+        if (known && !known.activityGuide.trim() && row.activityGuide) known.activityGuide = row.activityGuide.trim();
+        conceptIds = conceptId ? [conceptId] : [];
+      }
+      const saved = saveQuestion(target, user, lessonId, {
+        stem: row.stem,
+        choices: row.choices,
+        answerIndex: row.answerIndex,
+        hasReason: row.hasReason,
+        conceptIds,
+        rubric: row.rubric,
+        misconception: row.misconception,
+      });
+      if (!saved.ok) messages.push(...Object.values(saved.errors));
+      if (messages.length) errors[`row-${row.row}`] = `${row.row}행: ${messages.join(", ")}`;
+    }
+    return Object.keys(errors).length ? fail(errors) : ok(rows.length);
+  };
+
+  const trial = apply(structuredClone(data));
+  return trial.ok ? apply(data) : trial;
 }
 
 export function deleteQuestion(data: Data, user: User, lessonId: string, questionId: string): Result {

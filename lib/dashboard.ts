@@ -11,6 +11,10 @@ export type Dashboard = {
   version: number | undefined;
   /** 모든 시도의 합. 같은 학생의 여러 시도도 각각 센다. ADR 0002 */
   participation: number;
+  /** 한 번이라도 제출한 학생 수(같은 학생은 한 명). "응답 18 / 20명"의 앞 수 */
+  respondents: number;
+  /** 수업이 속한 학급의 학생 수. "응답 18 / 20명"의 뒤 수 */
+  enrolled: number;
   /** 최신 버전으로 푼 학생 수(분포의 모집단) */
   latestVersionAttempts: number;
   empty: boolean;
@@ -57,10 +61,14 @@ export function aggregate(data: Data, lessonId: string): Dashboard {
     .sort((a, b) => b.count - a.count || a.order - b.order)
     .map(({ conceptId, name, count }) => ({ conceptId, name, count }));
 
+  const setIds = new Set(data.questionSets.filter((s) => s.lessonId === lessonId).map((s) => s.id));
+  const classId = data.lessons.find((l) => l.id === lessonId)?.classId;
   return {
     lessonId,
     version: set?.version,
     participation,
+    respondents: new Set(data.attempts.filter((a) => setIds.has(a.questionSetId)).map((a) => a.studentId)).size,
+    enrolled: data.students.filter((s) => s.classId === classId).length,
     latestVersionAttempts: attempts.length,
     empty: participation === 0,
     distribution,
