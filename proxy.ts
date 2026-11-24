@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { sessionCookie, verifySession } from "@/lib/session";
+import { sessionCookie, sessionSecret, verifySession } from "@/lib/session";
 
 // 로그인하지 않은 요청을 서버 응답 단계에서 /login으로 보낸다(운영 전용).
 // 개발에서는 currentUser()가 데모 쿠키로 되돌아가므로 막지 않는다.
@@ -10,7 +10,7 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname === "/login" || pathname.startsWith("/api/auth/")) return NextResponse.next();
 
-  const secret = process.env.SESSION_SECRET;
+  const secret = sessionSecret();
   if (secret && verifySession(req.cookies.get(sessionCookie)?.value, secret)) return NextResponse.next();
   return NextResponse.redirect(new URL("/login", req.nextUrl));
 }

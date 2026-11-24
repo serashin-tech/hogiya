@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 import { RoleSwitcher } from "./role-switcher";
+import { SignOut } from "./sign-out";
 
 export const metadata: Metadata = {
   title: "호기야",
@@ -24,9 +25,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/" className="text-lg font-bold text-ink no-underline">
             호기야
           </Link>
-          <Suspense>
-            <RoleSwitcher />
-          </Suspense>
+          <div className="flex flex-wrap items-center gap-3">
+            <Suspense>
+              <RoleSwitcher />
+            </Suspense>
+            <Suspense>
+              <SignOut />
+            </Suspense>
+          </div>
         </header>
         <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
           <Suspense

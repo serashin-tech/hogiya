@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { userByEmail } from "@/lib/login";
-import { sessionCookie, sessionMaxAgeSec, signSession } from "@/lib/session";
+import { sessionCookie, sessionMaxAgeSec, sessionSecret, signSession } from "@/lib/session";
 import { store } from "@/lib/store";
 import { oauthCookies } from "@/lib/vercel-oauth";
 
@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.NEXT_PUBLIC_VERCEL_APP_CLIENT_ID;
   const clientSecret = process.env.VERCEL_APP_CLIENT_SECRET;
-  const sessionSecret = process.env.SESSION_SECRET;
-  if (!clientId || !clientSecret || !sessionSecret || sessionSecret.length < 32) return fail("not_configured");
+  const secret = sessionSecret();
+  if (!clientId || !clientSecret || !secret) return fail("not_configured");
 
   const q = req.nextUrl.searchParams;
   if (q.get("error") === "access_denied") return fail("access_denied");
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     if (!user) return fail("not_registered");
 
     const res = NextResponse.redirect(new URL("/", req.nextUrl));
-    res.cookies.set(sessionCookie, signSession(user, sessionSecret), {
+    res.cookies.set(sessionCookie, signSession(user, secret), {
       maxAge: sessionMaxAgeSec,
       httpOnly: true,
       sameSite: "lax",

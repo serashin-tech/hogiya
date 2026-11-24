@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { applyEmails, userByEmail } from "./login";
-import { signSession, verifySession } from "./session";
+import { sessionSecret, signSession, verifySession } from "./session";
 import type { Data } from "./types";
 
 const data = {
@@ -40,6 +40,19 @@ describe("applyEmails", () => {
   });
   it("값이 없으면 아무것도 하지 않는다", () => {
     expect(applyEmails(fresh(), undefined)).toEqual([]);
+  });
+});
+
+describe("sessionSecret", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("32자 이상일 때만 돌려준다", () => {
+    vi.stubEnv("SESSION_SECRET", "x".repeat(32));
+    expect(sessionSecret()).toBe("x".repeat(32));
+    vi.stubEnv("SESSION_SECRET", "x".repeat(31));
+    expect(sessionSecret()).toBeUndefined();
+    vi.stubEnv("SESSION_SECRET", "");
+    expect(sessionSecret()).toBeUndefined();
   });
 });
 
