@@ -2,6 +2,7 @@
 // 오류는 ?error=<코드>로 받아 아래 표의 문구를 보여 준다. 콜백 route가 같은 코드로 이 화면에 돌려보낸다.
 const errors: Record<string, string> = {
   access_denied: "Vercel에서 로그인이 취소되었습니다. 다시 시도해 주세요.",
+  not_configured: "로그인 설정이 아직 끝나지 않았습니다. 관리자에게 문의해 주세요.",
   invalid_state: "로그인 요청이 만료되었습니다. 처음부터 다시 시도해 주세요.",
   not_registered: "이 Vercel 계정은 호기야에 등록되어 있지 않습니다. 담당 교사에게 이메일 등록을 요청해 주세요.",
 };
