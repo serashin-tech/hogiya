@@ -11,7 +11,9 @@ async function switchUser(form: FormData) {
   redirect("/");
 }
 
+// 개발 전용. 운영에서는 currentUser()가 로그인 화면으로 보내므로, 여기서 부르면 /login에서도 되돌아가는 고리가 생긴다.
 export async function RoleSwitcher() {
+  if (process.env.NODE_ENV === "production") return null;
   const user = await currentUser();
   return (
     <form action={switchUser} className="flex items-center gap-2 text-sm">
