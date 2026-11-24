@@ -1,4 +1,4 @@
-// 로그인 화면. 단추는 아직 Vercel 로그인과 연결하지 않았다(/api/auth/authorize는 다음 단계).
+// 로그인 화면. 단추는 /api/auth/authorize로 이동해 Vercel 로그인을 시작한다.
 // 오류는 ?error=<코드>로 받아 아래 표의 문구를 보여 준다. 콜백 route가 같은 코드로 이 화면에 돌려보낸다.
 const errors: Record<string, string> = {
   access_denied: "Vercel에서 로그인이 취소되었습니다. 다시 시도해 주세요.",
@@ -20,13 +20,16 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           {errors[code] ?? fallback}
         </p>
       )}
-      <button type="button" disabled className="btn-primary flex w-full items-center justify-center gap-2">
+      {/* next/link를 쓰지 않는다: Link는 미리 불러오기를 하는데, 이 주소는 쿠키를 심고 외부로 보내는 route다. */}
+      <a
+        href="/api/auth/authorize"
+        className="btn-primary flex min-h-10 w-full items-center justify-center gap-2 rounded-full border px-5 py-1.5 font-semibold no-underline"
+      >
         <svg aria-hidden="true" viewBox="0 0 76 65" className="h-4 w-4 fill-current">
           <path d="M37.527 0 75.055 65H0z" />
         </svg>
         Sign in with Vercel
-      </button>
-      <p className="text-sm text-muted">아직 준비 중이라 단추가 동작하지 않습니다.</p>
+      </a>
     </div>
   );
 }
