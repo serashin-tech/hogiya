@@ -4,8 +4,9 @@ export type Subject = "과학" | "국어" | "영어" | "수학";
 export type PublishState = "작성 중" | "공개" | "마감";
 
 export type Classroom = { id: string; name: string };
-export type Student = { id: string; classId: string; number: number };
-export type Teacher = { id: string; name: string };
+// email은 Vercel 로그인 계정과 잇는 기준이다. 비어 있으면 그 사람은 Vercel로 로그인할 수 없다.
+export type Student = { id: string; classId: string; number: number; email?: string };
+export type Teacher = { id: string; name: string; email?: string };
 export type Assignment = { teacherId: string; classId: string; subject: Subject };
 
 export type Lesson = {

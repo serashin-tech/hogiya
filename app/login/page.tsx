@@ -6,7 +6,7 @@ const errors: Record<string, string> = {
   invalid_state: "로그인 요청이 만료되었습니다. 처음부터 다시 시도해 주세요.",
   not_registered: "이 Vercel 계정은 호기야에 등록되어 있지 않습니다. 담당 교사에게 이메일 등록을 요청해 주세요.",
 };
-const fallback = "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.";
+const fallback = "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요."; // login_failed도 이 문구를 쓴다.
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { error } = await searchParams;
