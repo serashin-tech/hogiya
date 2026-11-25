@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type SlideView = { id: string; title: string; text: string };
+export type SlideView = { id: string; title: string; text: string; images?: string[] };
 
 /** 슬라이드를 한 장씩 넘겨 보는 16:9 상자. 수업 자료와 호기의 설명이 같은 모양으로 보인다. */
 export function SlideViewer({ slides, empty = "아직 올린 자료가 없어요." }: { slides: SlideView[]; empty?: string }) {
@@ -17,6 +17,11 @@ export function SlideViewer({ slides, empty = "아직 올린 자료가 없어요
       <div className="screen-slide" aria-live="polite">
         <strong className="text-lg">{slide.title}</strong>
         {slide.text !== slide.title && <p className="whitespace-pre-line text-sm">{slide.text}</p>}
+        {slide.images?.map((src, i) => (
+          // data: 주소라서 next/image로 최적화할 것이 없다.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={i} src={src} alt={`${slide.title} 그림 ${i + 1}`} className="max-h-56 max-w-full object-contain" />
+        ))}
       </div>
       <div className="mt-2 flex items-center justify-center gap-4 text-sm font-semibold text-muted">
         <button type="button" onClick={() => setAt(index - 1)} disabled={index === 0} aria-label="이전 슬라이드">

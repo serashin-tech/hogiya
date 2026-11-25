@@ -62,3 +62,25 @@ describe("parsePptx", () => {
     expect(r).toMatchObject({ ok: false, errors: { file: expect.stringContaining("60") } });
   });
 });
+
+describe("parsePptx 그림", () => {
+  const pic = (rid: string) => `<p:pic><p:blipFill><a:blip r:embed="${rid}"/></p:blipFill></p:pic>`;
+  const withMedia = async (media: Record<string, number>, rels: string) => {
+    const zip = new JSZip();
+    zip.file("ppt/slides/slide1.xml", slideXml([shape('<p:ph type="title"/>', ["회로"]), pic("rId2"), pic("rId3")]).replace(NS, `${NS} xmlns:r="r"`));
+    zip.file("ppt/slides/_rels/slide1.xml.rels", `<Relationships>${rels}</Relationships>`);
+    for (const [name, size] of Object.entries(media)) zip.file(`ppt/media/${name}`, new Uint8Array(size).fill(1));
+    return parsePptx(await zip.generateAsync({ type: "uint8array" }));
+  };
+  const rel = (id: string, target: string) => `<Relationship Target="${target}" Id="${id}" Type="image"/>`;
+
+  it("슬라이드의 그림을 data: 주소로 가져오고 EMF 같은 형식은 건너뛴다", async () => {
+    const r = await withMedia({ "a.png": 4, "b.emf": 4 }, rel("rId2", "../media/a.png") + rel("rId3", "../media/b.emf"));
+    expect(r.ok && r.value[0].images).toEqual(["data:image/png;base64,AQEBAQ=="]);
+  });
+
+  it("그림 하나가 3MB를 넘으면 file 오류를 돌려준다", async () => {
+    const r = await withMedia({ "a.png": 3 * 1024 * 1024 + 1 }, rel("rId2", "../media/a.png"));
+    expect(!r.ok && r.errors.file).toMatch(/그림/);
+  });
+});

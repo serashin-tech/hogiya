@@ -23,6 +23,8 @@ export type Material = {
   body: string;
   /** PowerPoint에서 가져온 슬라이드이면 원본 파일 이름. 직접 쓴 자료에는 없다. */
   origin?: string;
+  /** PowerPoint 슬라이드에 든 그림(data: 주소). 없으면 생략한다. */
+  images?: string[];
 };
 
 export type Concept = { id: string; lessonId: string; name: string; activityGuide: string };

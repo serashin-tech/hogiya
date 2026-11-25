@@ -24,7 +24,7 @@ export function createLesson(
 
 /** 수업 자료를 슬라이드 모양으로 바꾼다. 올린 PowerPoint와 직접 쓴 자료가 같은 순서로 보인다. */
 export const slidesOf = (data: Data, lessonId: string) =>
-  data.materials.filter((m) => m.lessonId === lessonId).map((m) => ({ id: m.id, title: m.title, text: m.body }));
+  data.materials.filter((m) => m.lessonId === lessonId).map((m) => ({ id: m.id, title: m.title, text: m.body, images: m.images }));
 
 function validateMaterial(input: { title: string; body: string }) {
   const errors: Record<string, string> = {};
@@ -76,7 +76,7 @@ export function importDeck(
   user: User,
   lessonId: string,
   fileName: string,
-  slides: { title: string; text: string }[],
+  slides: { title: string; text: string; images?: string[] }[],
 ): Result<number> {
   if (!canOpen(data, user, { kind: "lesson", id: lessonId }) || !isTeacher(user)) {
     return fail({ lesson: "열 수 없는 자료입니다" });
@@ -91,6 +91,7 @@ export function importDeck(
       title,
       body: s.text.trim().slice(0, 2000) || title,
       origin: fileName,
+      ...(s.images?.length ? { images: s.images } : {}),
     });
   }
   return ok(slides.length);

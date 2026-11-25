@@ -27,6 +27,12 @@ describe("samples/ 가상 선생님 자료", () => {
     expect(importQuestions(data, teacher, made.value, sheet.value)).toEqual({ ok: true, value: 5 });
   });
 
+  it("전기 회로 자료는 그림과 함께 가져온다", async () => {
+    const deck = await parsePptx(readFileSync("samples/전기-회로와-안전_수업자료.pptx"));
+    if (!deck.ok) throw new Error(JSON.stringify(deck.errors));
+    expect(deck.value.map((s) => s.images?.length ?? 0)).toEqual([0, 2, 2, 1, 2, 0]);
+  });
+
   it("화면 확인용 데이터의 「연소와 소화」는 루브릭과 예상 오개념까지 갖췄다", () => {
     const data = demoData();
     const set = data.questionSets.find((s) => s.lessonId === "l-combustion");
