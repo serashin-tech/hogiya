@@ -8,7 +8,7 @@ export function proxy(req: NextRequest) {
   if (process.env.NODE_ENV !== "production") return NextResponse.next();
 
   const { pathname } = req.nextUrl;
-  if (pathname === "/login" || pathname.startsWith("/api/auth/")) return NextResponse.next();
+  if (pathname === "/login" || pathname.startsWith("/api/auth/") || pathname === "/api/mcp") return NextResponse.next();
 
   const secret = sessionSecret();
   if (secret && verifySession(req.cookies.get(sessionCookie)?.value, secret)) return NextResponse.next();
