@@ -24,7 +24,8 @@ export function buildAuthorization(origin: string, clientId: string) {
     code_challenge: createHash("sha256").update(verifier).digest("base64url"),
     code_challenge_method: "S256",
     response_type: "code",
-    scope: "openid email profile offline_access",
+    // 갱신 토큰(offline_access)은 쓰지 않아 요청하지 않는다. 문서상 openid만 필수이고 나머지는 선택이다.
+    scope: "openid email profile",
   });
   return { url: `${authorizeEndpoint}?${params}`, state, nonce, verifier };
 }

@@ -19,7 +19,7 @@ describe("buildAuthorization", () => {
   it("콜백 주소와 scope를 문서대로 보낸다", () => {
     expect(new URL(url).origin + new URL(url).pathname).toBe("https://vercel.com/oauth/authorize");
     expect(q.get("redirect_uri")).toBe("http://localhost:3000/api/auth/callback");
-    expect(q.get("scope")).toBe("openid email profile offline_access");
+    expect(q.get("scope")).toBe("openid email profile");
     expect(q.get("client_id")).toBe("cid");
     expect(q.get("state")).toBe(state);
     expect(q.get("nonce")).toBe(nonce);
