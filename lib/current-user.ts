@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { data } from "./mock-data";
@@ -14,6 +15,7 @@ export const userOptions: { value: string; label: string }[] = [
 /** 운영에서는 서명한 세션만 믿고, 없으면 로그인 화면으로 보낸다. 개발에서만 아래 데모 쿠키로 되돌아간다. */
 export async function currentUser(): Promise<User> {
   const jar = await cookies();
+  await connection(); // verifySession이 Date.now()를 쓰므로 요청 시점에 실행해야 한다.
   const secret = sessionSecret();
   const session = secret ? verifySession(jar.get(sessionCookie)?.value, secret) : undefined;
   if (session) return session;
