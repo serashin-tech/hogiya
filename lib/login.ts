@@ -18,6 +18,31 @@ export function applyEmails(data: Data, spec: string | undefined): string[] {
   return rejected;
 }
 
+/**
+ * Vercel 로그인 결과로 호기야 사용자를 정한다.
+ * 확인된 이메일이 등록돼 있으면 그 교사·학생이다. 아니면 Vercel 계정(sub)으로 학생을 찾고, 없으면 첫 학급의 새 학생으로 만든다.
+ * 교사는 확인된 이메일로만 될 수 있어서, 아무 Vercel 계정이 교사 권한을 얻지는 못한다.
+ */
+export function userForVercel(
+  data: Data,
+  who: { sub: string; email?: string; emailVerified?: boolean },
+): User {
+  const registered = who.email && who.emailVerified !== false ? userByEmail(data, who.email) : undefined;
+  if (registered) return registered;
+
+  let student = data.students.find((s) => s.vercelId === who.sub);
+  if (!student) {
+    student = {
+      id: `s-v-${who.sub}`,
+      classId: data.classrooms[0].id,
+      number: Math.max(0, ...data.students.map((s) => s.number)) + 1,
+      vercelId: who.sub,
+    };
+    data.students.push(student);
+  }
+  return { role: "student", id: student.id };
+}
+
 /** Vercel 계정의 이메일로 호기야 사용자를 찾는다. 등록되지 않았으면 undefined. */
 export function userByEmail(data: Data, email: string): User | undefined {
   const want = email.trim().toLowerCase();

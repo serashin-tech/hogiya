@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { applyEmails, userByEmail } from "./login";
+import { applyEmails, userByEmail, userForVercel } from "./login";
 import { sessionSecret, signSession, verifySession } from "./session";
 import type { Data } from "./types";
 
@@ -16,6 +16,35 @@ describe("userByEmail", () => {
   it("등록되지 않았거나 빈 이메일이면 찾지 않는다", () => {
     expect(userByEmail(data, "other@school.kr")).toBeUndefined();
     expect(userByEmail(data, "")).toBeUndefined(); // 이메일 없는 교사와 우연히 맞으면 안 된다
+  });
+});
+
+describe("userForVercel", () => {
+  const fresh = () =>
+    ({
+      classrooms: [{ id: "c", name: "6학년 2반" }],
+      teachers: [{ id: "t-과학", name: "과학 교사", email: "sci@school.kr" }],
+      students: [{ id: "s-01", classId: "c", number: 1, email: "kid@school.kr" }],
+    }) as Data;
+
+  it("등록된 이메일이면 그 교사·학생으로 로그인하고 학생을 새로 만들지 않는다", () => {
+    const d = fresh();
+    expect(userForVercel(d, { sub: "u1", email: "SCI@school.kr", emailVerified: true })).toEqual({ role: "teacher", id: "t-과학" });
+    expect(userForVercel(d, { sub: "u2", email: "kid@school.kr", emailVerified: true })).toEqual({ role: "student", id: "s-01" });
+    expect(d.students).toHaveLength(1);
+  });
+  it("등록되지 않은 계정은 새 학생이 되고, 다시 로그인해도 같은 학생이다", () => {
+    const d = fresh();
+    const first = userForVercel(d, { sub: "u3", email: "new@x.kr", emailVerified: true });
+    expect(first).toEqual({ role: "student", id: "s-v-u3" });
+    expect(d.students.at(-1)).toMatchObject({ id: "s-v-u3", classId: "c", number: 2, vercelId: "u3" });
+    expect(userForVercel(d, { sub: "u3", email: "new@x.kr", emailVerified: true })).toEqual(first);
+    expect(d.students).toHaveLength(2);
+  });
+  it("이메일이 없거나 확인되지 않았으면 교사 이메일과 같아도 교사가 되지 않는다", () => {
+    const d = fresh();
+    expect(userForVercel(d, { sub: "u4", email: "sci@school.kr", emailVerified: false })).toEqual({ role: "student", id: "s-v-u4" });
+    expect(userForVercel(d, { sub: "u5" })).toEqual({ role: "student", id: "s-v-u5" });
   });
 });
 

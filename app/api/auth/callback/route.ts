@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { userByEmail } from "@/lib/login";
+import { userForVercel } from "@/lib/login";
 import { sessionCookie, sessionMaxAgeSec, sessionSecret, signSession } from "@/lib/session";
 import { store } from "@/lib/store";
 import { oauthCookies } from "@/lib/vercel-oauth";
@@ -56,11 +56,11 @@ export async function GET(req: NextRequest) {
 
     const infoRes = await fetch(userinfoEndpoint, { headers: { Authorization: `Bearer ${tokens.access_token}` } });
     if (!infoRes.ok) return fail("login_failed");
-    const info: { email?: string; email_verified?: boolean } = await infoRes.json();
-    if (!info.email || info.email_verified === false) return fail("not_registered");
+    const info: { sub?: string; email?: string; email_verified?: boolean } = await infoRes.json();
+    if (!info.sub) return fail("login_failed");
 
-    const user = userByEmail(store, info.email);
-    if (!user) return fail("not_registered");
+    // 등록된 이메일은 그 교사·학생으로, 등록되지 않은 Vercel 계정은 새 학생으로 로그인시킨다.
+    const user = userForVercel(store, { sub: info.sub, email: info.email, emailVerified: info.email_verified });
 
     const res = NextResponse.redirect(new URL("/", req.nextUrl));
     res.cookies.set(sessionCookie, signSession(user, secret), {
