@@ -4,6 +4,7 @@ import { aggregate, canOpenDashboard } from "@/lib/dashboard";
 import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
 import { loadSyntheticAction } from "@/app/actions";
+import { ScreenFrame } from "@/app/_components/screen-frame";
 
 export default async function DashboardPage({ params }: PageProps<"/lessons/[id]/dashboard">) {
   const { id } = await params;
@@ -39,48 +40,69 @@ export default async function DashboardPage({ params }: PageProps<"/lessons/[id]
           {d.latestVersionAttempts === 0 && (
             <p className="mb-3 text-sm">최신 버전(버전 {d.version})으로 푼 학생이 아직 없어서 분포가 비어 있어요.</p>
           )}
-          <h2 className="mb-2 text-lg font-semibold">개념별 이해 수준 (학생마다 최근 시도 기준)</h2>
-          <p className="mb-1 text-xs text-muted sm:hidden">표는 옆으로 밀어서 볼 수 있어요.</p>
-          <div className="card mb-8 overflow-x-auto !p-0" tabIndex={0} role="region" aria-label="개념별 이해 수준 표">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-line text-left">
-                  <th className="px-4 py-3">개념</th>
-                  <th className="px-4 py-3"><span className="chip lv-low">더 알아봐요</span></th>
-                  <th className="px-4 py-3"><span className="chip lv-mid">거의 알아요</span></th>
-                  <th className="px-4 py-3"><span className="chip lv-high">잘 알아요</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {d.distribution.map((c) => (
-                  <tr key={c.conceptId} className="border-b border-line last:border-0">
-                    <td className="px-4 py-3 font-semibold">
-                      <Link href={`/lessons/${id}/dashboard/${c.conceptId}`}>{c.name}</Link>
-                    </td>
-                    <td className="px-4 py-3 tabular-nums">{c.counts["더 알아봐요"]}명</td>
-                    <td className="px-4 py-3 tabular-nums">{c.counts["거의 알아요"]}명</td>
-                    <td className="px-4 py-3 tabular-nums">{c.counts["잘 알아요"]}명</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <h2 className="mb-2 text-lg font-semibold">다시 다룰 개념 (재지도 대상)</h2>
-          {d.reteach.length === 0 ? (
-            <p className="text-sm text-muted">&quot;더 알아봐요&quot;인 학생이 없어요.</p>
-          ) : (
-            <ol className="card list-decimal space-y-1 pl-9">
-              {d.reteach.map((r) => (
-                <li key={r.conceptId}>
-                  <Link href={`/lessons/${id}/dashboard/${r.conceptId}`} className="font-semibold">
-                    {r.name}
-                  </Link>{" "}
-                  <span className="text-sm text-muted">{r.count}명</span>
-                </li>
-              ))}
-            </ol>
-          )}
+          <ScreenFrame
+            title={`③ 우리 반 결과 · ${lesson.title}`}
+            status={`응답 ${d.respondents} / ${d.enrolled}명`}
+            main={
+              <>
+                <div className="screen-label">개념별 결과 (학생마다 최근 시도 기준)</div>
+                <ul className="space-y-4">
+                  {d.distribution.map((c) => (
+                    <li key={c.conceptId} className="space-y-1">
+                      <p className="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <Link href={`/lessons/${id}/dashboard/${c.conceptId}`} className="font-semibold">
+                          {c.name}
+                        </Link>
+                        <span className="text-sm">
+                          더 알아봐요 <strong>{c.counts["더 알아봐요"]}명</strong>
+                        </span>
+                      </p>
+                      <progress
+                        value={c.counts["더 알아봐요"]}
+                        max={Math.max(1, d.respondents)}
+                        aria-label={`${c.name}: 더 알아봐요 ${c.counts["더 알아봐요"]}명`}
+                      />
+                      <p className="flex flex-wrap gap-2 text-sm">
+                        <span className="chip lv-low">더 알아봐요 {c.counts["더 알아봐요"]}명</span>
+                        <span className="chip lv-mid">거의 알아요 {c.counts["거의 알아요"]}명</span>
+                        <span className="chip lv-high">잘 알아요 {c.counts["잘 알아요"]}명</span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm text-muted">개념 이름을 누르면 학생별 답안과 판단 근거를 볼 수 있어요.</p>
+              </>
+            }
+            side={
+              <>
+                <div className="screen-label">다음 수업 준비</div>
+                <p className="text-sm">다시 설명할 개념</p>
+                {d.reteach.length === 0 ? (
+                  <p className="text-sm text-muted">&quot;더 알아봐요&quot;인 학생이 없어요.</p>
+                ) : (
+                  <>
+                    <ol className="list-decimal space-y-1 pl-5">
+                      {d.reteach.map((r) => (
+                        <li key={r.conceptId}>
+                          <Link href={`/lessons/${id}/dashboard/${r.conceptId}`} className="font-semibold">
+                            {r.name}
+                          </Link>{" "}
+                          <span className="text-sm text-muted">{r.count}명</span>
+                        </li>
+                      ))}
+                    </ol>
+                    <p className="text-sm text-muted">답안과 판단 근거를 확인해 보세요.</p>
+                    <Link
+                      href={`/lessons/${id}/dashboard/${d.reteach[0].conceptId}`}
+                      className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-[var(--primary-ink)] no-underline hover:opacity-85"
+                    >
+                      답안 살펴보기
+                    </Link>
+                  </>
+                )}
+              </>
+            }
+          />
           <p className="mt-6 text-xs text-muted">
             호기의 진단과 추천은 참고 정보이며, 보충지도 여부는 교사가 정합니다.
           </p>

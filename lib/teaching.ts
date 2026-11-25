@@ -22,6 +22,10 @@ export function createLesson(
   return ok(id);
 }
 
+/** 수업 자료를 슬라이드 모양으로 바꾼다. 올린 PowerPoint와 직접 쓴 자료가 같은 순서로 보인다. */
+export const slidesOf = (data: Data, lessonId: string) =>
+  data.materials.filter((m) => m.lessonId === lessonId).map((m) => ({ id: m.id, title: m.title, text: m.body }));
+
 function validateMaterial(input: { title: string; body: string }) {
   const errors: Record<string, string> = {};
   if (!input.title.trim()) errors.title = "자료 제목을 입력하세요";

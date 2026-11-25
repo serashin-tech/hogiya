@@ -22,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           본문 바로가기
         </a>
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface px-4 py-3 sm:px-6">
-          <Link href="/" className="text-lg font-bold text-ink no-underline">
+          <Link href="/" className="rounded-lg bg-yellow px-3 py-1 text-lg font-bold text-[#1c1c1e] no-underline">
             호기야
           </Link>
           <div className="flex flex-wrap items-center gap-3">
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Suspense>
           </div>
         </header>
-        <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+        <main id="main" className="mx-auto w-full max-w-[1960px] flex-1 px-4 py-8 sm:px-6">
           <Suspense
             fallback={
               <p role="status" className="card animate-pulse text-muted">

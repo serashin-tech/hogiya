@@ -5,6 +5,7 @@ import { canStartAttempt } from "@/lib/attempts";
 import { currentUser } from "@/lib/current-user";
 import { latestSet, setSignature } from "@/lib/publishing";
 import { store } from "@/lib/store";
+import { slidesOf } from "@/lib/teaching";
 import { submitAttemptAction } from "@/app/actions";
 import { DiagnoseForm } from "@/app/_components/diagnose-form";
 
@@ -26,6 +27,8 @@ export default async function DiagnosePage({ params }: PageProps<"/lessons/[id]/
         <DiagnoseForm
           action={submitAttemptAction}
           lessonId={id}
+          lessonTitle={lesson.title}
+          slides={slidesOf(store, id)}
           signature={setSignature(set)}
           questions={set.questions.map(({ id, stem, choices, hasReason }) => ({ id, stem, choices, hasReason }))}
         />

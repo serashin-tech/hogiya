@@ -11,6 +11,7 @@ export type QuestionDefaults = {
   hasReason: boolean;
   conceptId: string;
   rubric: string;
+  misconception?: string;
 };
 const CHOICE_SLOTS = 4;
 
@@ -83,6 +84,10 @@ export function QuestionForm({
       <label className="block text-sm font-semibold">
         루브릭 (판단 근거 문장)
         <textarea name="rubric" rows={2} defaultValue={defaults.rubric} className="mt-1 w-full font-normal" />
+      </label>
+      <label className="block text-sm font-semibold">
+        예상 오개념 <span className="font-normal text-muted">(적지 않아도 돼요)</span>
+        <textarea name="misconception" rows={2} defaultValue={defaults.misconception ?? ""} className="mt-1 w-full font-normal" />
       </label>
       <button type="submit" disabled={pending} className={secondary ? "" : "btn-primary"}>
         {submitLabel}

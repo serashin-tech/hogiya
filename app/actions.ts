@@ -6,11 +6,14 @@ import { currentUser } from "@/lib/current-user";
 import { store } from "@/lib/store";
 import { submitAttempt } from "@/lib/attempts";
 import { loadSynthetic } from "@/lib/synthetic";
+import { parsePptx } from "@/lib/pptx";
+import { parseQuestionSheet } from "@/lib/question-sheet";
 import { askHogi } from "@/lib/hogi";
 import { saveRetelling } from "@/lib/review";
-import { deleteQuestion, latestSet, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
-import { addMaterial, createLesson, deleteMaterial, updateMaterial } from "@/lib/teaching";
+import { deleteQuestion, importQuestions, latestSet, saveConcept, saveQuestion, setLessonState } from "@/lib/publishing";
+import { addMaterial, createLesson, deleteMaterial, importDeck, updateMaterial } from "@/lib/teaching";
 import type { FormState } from "./_components/fields-form";
+import type { UploadState } from "./_components/upload-form";
 import type { HogiState } from "./_components/hogi-panel";
 import type { Subject } from "@/lib/types";
 
@@ -56,10 +59,44 @@ export async function saveQuestionAction(_: FormState, f: FormData): Promise<For
     hasReason: f.get("hasReason") === "on",
     conceptIds: f.getAll("conceptId").map(String).filter(Boolean),
     rubric: text(f, "rubric"),
+    misconception: text(f, "misconception"),
   });
   if (!r.ok) return { errors: r.errors };
   revalidatePath("/lessons/[id]", "layout");
   return {};
+}
+
+const MB = 1024 * 1024;
+
+/** 업로드한 파일을 읽는다. 종류와 크기가 맞지 않으면 안내 문구를 돌려준다. */
+async function readUpload(f: FormData, ext: string, label: string, maxBytes: number) {
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: `${label} 파일을 골라 주세요` };
+  if (!file.name.toLowerCase().endsWith(ext)) return { error: `${label}(${ext}) 파일만 올릴 수 있습니다` };
+  if (file.size > maxBytes) return { error: `파일은 ${maxBytes / MB}MB까지 올릴 수 있습니다` };
+  return { file, bytes: new Uint8Array(await file.arrayBuffer()) };
+}
+
+export async function uploadDeckAction(_: UploadState, f: FormData): Promise<UploadState> {
+  const up = await readUpload(f, ".pptx", "PowerPoint", 10 * MB);
+  if (!up.file) return { errors: { file: up.error } };
+  const parsed = await parsePptx(up.bytes);
+  if (!parsed.ok) return { errors: parsed.errors };
+  const r = importDeck(store, await currentUser(), text(f, "lessonId"), up.file.name, parsed.value);
+  if (!r.ok) return { errors: r.errors };
+  revalidatePath("/lessons/[id]", "layout");
+  return { count: r.value };
+}
+
+export async function importQuestionsAction(_: UploadState, f: FormData): Promise<UploadState> {
+  const up = await readUpload(f, ".xlsx", "엑셀", 1 * MB);
+  if (!up.file) return { errors: { file: up.error } };
+  const parsed = await parseQuestionSheet(up.bytes);
+  if (!parsed.ok) return { errors: parsed.errors };
+  const r = importQuestions(store, await currentUser(), text(f, "lessonId"), parsed.value);
+  if (!r.ok) return { errors: r.errors };
+  revalidatePath("/lessons/[id]", "layout");
+  return { count: r.value };
 }
 
 export async function deleteQuestionAction(f: FormData) {

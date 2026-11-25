@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { canOpen } from "@/lib/access";
 import { currentUser } from "@/lib/current-user";
-import { latestSet, versionsOf } from "@/lib/publishing";
+import { latestSet, QUESTION_COUNT, versionsOf } from "@/lib/publishing";
 import { store } from "@/lib/store";
-import { deleteQuestionAction, saveConceptAction, saveQuestionAction } from "@/app/actions";
+import { deleteQuestionAction, importQuestionsAction, saveConceptAction, saveQuestionAction } from "@/app/actions";
 import { FieldsForm } from "@/app/_components/fields-form";
+import { ScreenFrame } from "@/app/_components/screen-frame";
+import { UploadForm } from "@/app/_components/upload-form";
 import { QuestionForm } from "@/app/_components/question-form";
 
 export default async function QuestionsPage({ params }: PageProps<"/lessons/[id]/questions">) {
@@ -59,26 +61,66 @@ export default async function QuestionsPage({ params }: PageProps<"/lessons/[id]
         />
       </div>
 
-      <h2 className="mb-2 mt-10 text-lg font-semibold">문항 ({set?.questions.length ?? 0}개)</h2>
-      <ul className="space-y-4">
-        {set?.questions.map((q, i) => (
-          <li key={q.id} className="card">
-            <p className="mb-2 text-sm font-semibold">{i + 1}번 문항</p>
-            <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={q} submitLabel="저장" secondary />
-            <form action={deleteQuestionAction} className="mt-2">
-              <input type="hidden" name="lessonId" value={id} />
-              <input type="hidden" name="id" value={q.id} />
-              <button type="submit" className="!min-h-0 !py-1 text-sm">
-                삭제
-              </button>
-            </form>
-          </li>
-        ))}
-      </ul>
-      <div className="card mt-4">
-        <p className="mb-2 text-sm font-semibold">새 문항</p>
-        <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={empty} submitLabel="문항 추가" />
-      </div>
+      <h2 className="mb-2 mt-10 text-lg font-semibold">진단 문항</h2>
+      <ScreenFrame
+        title="② 진단 문항과 판단 기준"
+        status={`문항 ${set?.questions.length ?? 0} / ${QUESTION_COUNT}개`}
+        main={
+          <>
+            <ul className="space-y-6">
+              {set?.questions.map((q, i) => (
+                <li key={q.id} className="space-y-2 border-b border-line pb-6 last:border-0">
+                  <div className="screen-label">문항 {i + 1}</div>
+                  <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={q} submitLabel="저장" secondary />
+                  <form action={deleteQuestionAction}>
+                    <input type="hidden" name="lessonId" value={id} />
+                    <input type="hidden" name="id" value={q.id} />
+                    <button type="submit" className="!min-h-0 !py-1 text-sm">
+                      삭제
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <div className="space-y-2">
+              <div className="screen-label">새 문항</div>
+              <QuestionForm action={saveQuestionAction} lessonId={id} concepts={concepts} defaults={empty} submitLabel="문항 추가" secondary />
+            </div>
+          </>
+        }
+        side={
+          <div className="space-y-3 md:sticky md:top-4">
+            <div className="screen-label">엑셀로 한꺼번에 올리기</div>
+            <p className="text-sm text-muted">
+              지문, 선택지, 정답, 확인할 개념, 루브릭, 예상 오개념을 한 줄에 한 문항씩 적어 올려요. 기존 문항 뒤에 더해지고, 한 줄이라도 틀리면 아무것도 저장하지 않아요.
+            </p>
+            <UploadForm
+              action={importQuestionsAction}
+              lessonId={id}
+              accept=".xlsx"
+              label="엑셀 파일(.xlsx)"
+              submitLabel="엑셀 파일 올리기"
+              done="문항 {n}개를 더했어요"
+              secondary
+            />
+            <p>
+              <a href="/questions-template.xlsx" download className="text-sm font-semibold">
+                양식 내려받기
+              </a>
+            </p>
+            <hr className="border-line" />
+            <p className="text-sm text-muted">
+              저장한 내용은 복습을 열기 전까지 학생에게 보이지 않아요. 따로 임시 저장하지 않아도 돼요.
+            </p>
+            <Link
+              href={`/lessons/${id}/preview`}
+              className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-[var(--primary-ink)] no-underline hover:opacity-85"
+            >
+              미리 보고 복습 열기
+            </Link>
+          </div>
+        }
+      />
 
       {versionsOf(store, id).length > 1 && (
         <section className="mt-10">

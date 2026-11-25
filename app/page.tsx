@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/current-user";
 import { lessonProgress } from "@/lib/review";
 import { store } from "@/lib/store";
 import { createLessonAction } from "./actions";
+import { Character } from "./_components/character";
 import { FieldsForm } from "./_components/fields-form";
 
 export default async function Home() {
@@ -13,7 +14,10 @@ export default async function Home() {
   const subjects = [...new Set(lessons.map((l) => l.subject))];
   return (
     <>
-      <h1 className="mb-6 text-3xl font-bold">수업 목록</h1>
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <h1 className="text-3xl font-bold">수업 목록</h1>
+        <Character role={user.role} className="h-28 w-auto" />
+      </div>
       {lessons.length === 0 ? (
         <p className="card text-muted">
           {user.role === "teacher" ? "담당하는 수업이 아직 없습니다." : "아직 열린 수업이 없어요."}
