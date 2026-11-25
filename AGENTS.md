@@ -7,3 +7,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Agent skills
+
+### Issue tracker
+
+로컬 마크다운(`.scratch/<기능>/issues/`)으로 티켓을 관리한다. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+단일 컨텍스트(`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
